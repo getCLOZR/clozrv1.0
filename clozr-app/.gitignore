@@ -1,0 +1,103 @@
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.eggs/
+*.egg
+dist/
+build/
+pip-wheel-metadata/
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# dotenv environment files (never commit secrets)
+.env
+.env.*
+
+
+# -----------------------
+# FastAPI / Uvicorn
+# -----------------------
+# Web server logs
+*.log
+# Cache from tools
+.cache/
+.pytest_cache/
+
+
+# -----------------------
+# Node / Shopify App Frontend (React + Vite)
+# -----------------------
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp/
+.pnp.js
+
+# Production builds
+frontend/build/
+frontend/dist/
+frontend/.next/
+.next/
+out/
+
+# Shopfiy App
+extensions/*/dist/
+extensions/*/build/
+extensions/*/node_modules/
+
+# Shopify config files that may contain secrets
+shopify.env
+shopify.app.toml
+
+
+# -----------------------
+# macOS / Editors
+# -----------------------
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files saved by macOS
+*.swp
+*.swo
+
+# IDE / Editor-specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+
+# -----------------------
+# Ngrok
+# -----------------------
+# Ngrok introspection data / metadata
+ngrok.log
+.ngrok2/
+.ngrok/
+
+
+# -----------------------
+# Misc
+# -----------------------
+*.sqlite3
+*.db
+*.sqlite
+tmp/
+temp/
+*.bak
+*.old

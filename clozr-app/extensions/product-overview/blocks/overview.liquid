@@ -1,0 +1,34 @@
+{% comment %}
+  CLOZR Product Overview Block
+  This block injects a container for AI-generated product overviews.
+  The overview content will be fetched and injected via overview.js
+{% endcomment %}
+
+<div id="clozr-overview" class="clozr-overview-container" data-product-id="{{ product.id }}" data-product-handle="{{ product.handle }}">
+  {% comment %} Placeholder content - will be replaced by JavaScript {% endcomment %}
+  <div class="clozr-overview-loading" style="display: none;">
+    <p>Loading product overview...</p>
+  </div>
+  <div class="clozr-overview-content" style="display: none;">
+    {% comment %} AI-generated overview will be inserted here {% endcomment %}
+  </div>
+</div>
+
+<style>
+  .clozr-overview-container {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
+  }
+  
+  .clozr-overview-content {
+    line-height: 1.6;
+  }
+  
+  .clozr-overview-loading {
+    text-align: center;
+    color: #6b7280;
+  }
+</style>
+

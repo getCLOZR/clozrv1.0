@@ -1,0 +1,25 @@
+{
+  "name": "Product Overview",
+  "settings": [
+    {
+      "type": "header",
+      "content": "CLOZR AI Product Overview"
+    },
+    {
+      "type": "paragraph",
+      "content": "Display an AI-generated overview of your product. The overview will be automatically generated and updated."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overview",
+      "label": "Show Product Overview",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Overview"
+    }
+  ]
+}
+
