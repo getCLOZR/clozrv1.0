@@ -1,50 +1,79 @@
 # app/attributes.py
 
-from typing import Dict, Any
+# from typing import Dict, Any
+
+# app/services/attributes.py
+
+from typing import List, Optional
+from typing import List, Optional, Dict, Any
+
+# import re
+
+def infer_category(title: str, product_type: Optional[str], tags: List[str]) -> Optional[str]:
+    text = " ".join(
+        [title or "", product_type or "", " ".join(tags or [])]
+    ).lower()
+
+    # Jackets / outerwear
+    if any(k in text for k in ["puffer", "parka", "jacket", "shell", "coat"]):
+        return "jacket"
+
+    # Hoodies / sweatshirts
+    if any(k in text for k in ["hoodie", "hooded", "fleece", "pullover", "crewneck", "sweatshirt"]):
+        return "hoodie"
+
+    # T-shirts
+    if any(k in text for k in ["t-shirt", "t shirt", "tee", "graphic tee"]):
+        return "t-shirt"
+
+    # Long sleeves / shirts
+    if any(k in text for k in ["long sleeve", "flannel", "oxford", "button down", "shirt"]):
+        return "shirt"
+
+    # Pants
+    if any(k in text for k in ["pants", "trouser", "jogger", "chino", "jean"]):
+        return "pants"
+
+    # Sweaters
+    if any(k in text for k in ["sweater", "cardigan", "knit"]):
+        return "sweater"
+
+    return None
+
+
+def extract_product_attributes(raw: dict) -> dict:
+    title = raw.get("title", "")
+    product_type = raw.get("product_type")
+    tags_raw = raw.get("tags") or ""
+    tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+
+    category = infer_category(title, product_type, tags)
+
+    primary_use: List[str] = []
+    text = " ".join([title or "", raw.get("body_html") or "", tags_raw]).lower()
+
+    if any(k in text for k in ["winter", "snow", "cold", "fleece", "parka", "puffer"]):
+        primary_use.append("winter")
+    if any(k in text for k in ["campus", "class", "college", "everyday", "daily"]):
+        primary_use.append("campus")
+    if any(k in text for k in ["running", "jog", "training", "gym"]):
+        primary_use.append("training")
+
+    return {
+        "category": category,
+        "style": None,
+        "warmth_level": "high" if "winter" in primary_use else None,
+        "fit": None,
+        "material_main": None,
+        "price_band": None,
+        "primary_use": primary_use or None,
+        "extra_metadata": {},
+    }
 
 
 def extract_attributes_from_raw(raw_json: Dict[str, Any]) -> Dict[str, Any]:
     """
-    V0 heuristic extractor.
-    Later, replace this with an LLM call that returns structured attributes.
+    Backwards-compatible wrapper used by the enrichment pipeline.
+    Internally delegates to extract_product_attributes.
     """
-    title = (raw_json.get("title") or "").lower()
-    body = (raw_json.get("body_html") or "").lower()
-    tags = [t.lower() for t in raw_json.get("tags", [])]
-
-    text = " ".join([title, body, " ".join(tags)])
-
-    # Very rough heuristics just so we have *something* working
-    category = None
-    if "hoodie" in text:
-        category = "hoodie"
-    elif "jacket" in text:
-        category = "jacket"
-    elif "t-shirt" in text or "tee" in text:
-        category = "t-shirt"
-
-    warmth_level = None
-    if any(w in text for w in ["fleece", "insulated", "puffer", "down"]):
-        warmth_level = "high"
-    elif "lightweight" in text:
-        warmth_level = "low"
-
-    primary_use = []
-    if "winter" in text:
-        primary_use.append("winter")
-    if "campus" in text or "class" in text:
-        primary_use.append("campus")
-    if "running" in text or "gym" in text:
-        primary_use.append("sport")
-
-    # This is the shape expected by ProductAttributes
-    return {
-        "category": category,
-        "style": None,          # TODO LLM later
-        "warmth_level": warmth_level,
-        "fit": None,            # TODO LLM later
-        "material_main": None,  # TODO LLM later
-        "price_band": None,     # TODO LLM later
-        "primary_use": primary_use or None,
-        "metadata": {},         # space for extra stuff
-    }
+    return extract_product_attributes(raw_json)

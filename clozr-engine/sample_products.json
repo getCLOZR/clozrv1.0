@@ -1,0 +1,244 @@
+{
+  "products": [
+    {
+      "id": 1001,
+      "title": "CLOZR Cozy Fleece Hoodie",
+      "body_html": "A soft fleece hoodie perfect for winter classes and lazy Sundays.",
+      "vendor": "CLOZR Basics",
+      "product_type": "hoodie",
+      "tags": "Hoodie, Winter, Campus, Unisex",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2001,
+          "title": "M / Charcoal",
+          "price": "59.00",
+          "sku": "HOODIE-COZY-CHAR-M",
+          "inventory_quantity": 25
+        }
+      ],
+      "images": [
+        {
+          "id": 3001,
+          "alt": "Charcoal fleece hoodie on a hanger"
+        }
+      ]
+    },
+    {
+      "id": 1002,
+      "title": "CLOZR Lightweight Campus Crewneck",
+      "body_html": "Mid-weight crewneck sweatshirt ideal for everyday campus wear.",
+      "vendor": "CLOZR Basics",
+      "product_type": "sweatshirt",
+      "tags": "Sweatshirt, Fall, Campus, Unisex",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2002,
+          "title": "L / Forest Green",
+          "price": "49.00",
+          "sku": "CREW-CAMPUS-GRN-L",
+          "inventory_quantity": 18
+        }
+      ],
+      "images": [
+        {
+          "id": 3002,
+          "alt": "Green crewneck folded on a bench"
+        }
+      ]
+    },
+    {
+      "id": 1003,
+      "title": "CLOZR Everyday Puffer Jacket",
+      "body_html": "Warm insulated puffer jacket designed for cold winters and windy walks.",
+      "vendor": "CLOZR Outerwear",
+      "product_type": "jacket",
+      "tags": "Jacket, Winter, Warm, Outerwear",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2003,
+          "title": "M / Black",
+          "price": "129.00",
+          "sku": "PUFFER-EVERYDAY-BLK-M",
+          "inventory_quantity": 12
+        }
+      ],
+      "images": [
+        {
+          "id": 3003,
+          "alt": "Black puffer jacket on a snowy background"
+        }
+      ]
+    },
+    {
+      "id": 1004,
+      "title": "CLOZR Relaxed Fit Graphic Tee",
+      "body_html": "Soft cotton t-shirt with a minimal CLOZR graphic on the chest.",
+      "vendor": "CLOZR Basics",
+      "product_type": "t-shirt",
+      "tags": "Tee, Summer, Everyday, Unisex",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2004,
+          "title": "M / White",
+          "price": "25.00",
+          "sku": "TEE-GRAPHIC-WHT-M",
+          "inventory_quantity": 40
+        }
+      ],
+      "images": [
+        {
+          "id": 3004,
+          "alt": "White graphic tee on a table"
+        }
+      ]
+    },
+    {
+      "id": 1005,
+      "title": "CLOZR Heavyweight Flannel Shirt",
+      "body_html": "Brushed flannel shirt, great as a mid-layer for chilly days.",
+      "vendor": "CLOZR Outdoor",
+      "product_type": "shirt",
+      "tags": "Flannel, Fall, Layering",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2005,
+          "title": "L / Red Check",
+          "price": "69.00",
+          "sku": "FLANNEL-RED-L",
+          "inventory_quantity": 15
+        }
+      ],
+      "images": [
+        {
+          "id": 3005,
+          "alt": "Red check flannel shirt on a chair"
+        }
+      ]
+    },
+    {
+      "id": 1006,
+      "title": "CLOZR Everyday Chino Pants",
+      "body_html": "Slim-tapered chinos that work for class, office, or weekends.",
+      "vendor": "CLOZR Essentials",
+      "product_type": "pants",
+      "tags": "Chinos, Everyday, Casual",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2006,
+          "title": "32 / Khaki",
+          "price": "59.00",
+          "sku": "CHINO-KHAKI-32",
+          "inventory_quantity": 22
+        }
+      ],
+      "images": [
+        {
+          "id": 3006,
+          "alt": "Khaki chinos folded on a shelf"
+        }
+      ]
+    },
+    {
+      "id": 1007,
+      "title": "CLOZR Flexible Joggers",
+      "body_html": "Stretchy joggers with cuffed ankles, ideal for travel and lounging.",
+      "vendor": "CLOZR Essentials",
+      "product_type": "pants",
+      "tags": "Joggers, Athleisure, Travel",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2007,
+          "title": "M / Charcoal",
+          "price": "55.00",
+          "sku": "JOGGER-CHAR-M",
+          "inventory_quantity": 28
+        }
+      ],
+      "images": [
+        {
+          "id": 3007,
+          "alt": "Joggers draped over a sofa arm"
+        }
+      ]
+    },
+    {
+      "id": 1008,
+      "title": "CLOZR Packable Rain Jacket",
+      "body_html": "Lightweight waterproof shell that packs into its own pocket.",
+      "vendor": "CLOZR Outdoor",
+      "product_type": "jacket",
+      "tags": "Rain Jacket, Spring, Travel, Waterproof",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2008,
+          "title": "M / Navy",
+          "price": "89.00",
+          "sku": "RAIN-PACKABLE-NVY-M",
+          "inventory_quantity": 17
+        }
+      ],
+      "images": [
+        {
+          "id": 3008,
+          "alt": "Navy rain jacket hanging on a hook"
+        }
+      ]
+    },
+    {
+      "id": 1009,
+      "title": "CLOZR Quarter-Zip Fleece",
+      "body_html": "Mid-weight quarter-zip fleece for layering or wearing on its own.",
+      "vendor": "CLOZR Basics",
+      "product_type": "fleece",
+      "tags": "Fleece, Layering, Winter",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2009,
+          "title": "M / Stone",
+          "price": "65.00",
+          "sku": "FLEECE-QZIP-STONE-M",
+          "inventory_quantity": 20
+        }
+      ],
+      "images": [
+        {
+          "id": 3010,
+          "alt": "Stone quarter-zip fleece folded"
+        }
+      ]
+    },
+    {
+      "id": 1010,
+      "title": "CLOZR Classic Piqué Polo",
+      "body_html": "Breathable piqué polo that can dress up or down.",
+      "vendor": "CLOZR Essentials",
+      "product_type": "polo",
+      "tags": "Polo, Summer, Smart Casual",
+      "status": "active",
+      "variants": [
+        {
+          "id": 2010,
+          "title": "M / Navy",
+          "price": "45.00",
+          "sku": "POLO-NAVY-M",
+          "inventory_quantity": 26
+        }
+      ],
+      "images": [
+        {
+          "id": 3011,
+          "alt": "Navy polo shirt on a hanger"
+        }
+      ]
+    }
+  ]
+}

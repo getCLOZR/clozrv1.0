@@ -1,11 +1,14 @@
 # app/main.py
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
+from typing import List, Optional
 
 from app.db import get_db
-from app.schemas import ProductIngestPayload, ProductIntelligenceResponse
+from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductSummaryResponse
 from app.services import product_services
+from app.services.product_services import (get_product_with_attributes, list_products_with_attributes, search_products_with_attributes, build_product_sales_summary)
+
 
 app = FastAPI(title="CLOZR Product Intelligence Engine")
 
@@ -44,3 +47,94 @@ def get_product_intelligence(product_id: UUID):
             "primary_use": ["winter", "campus", "casual"],
         },
     )
+
+@app.get("/products", response_model=List[ProductListItem])
+def list_products(
+    limit: int = 20,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    rows = list_products_with_attributes(db, limit=limit, offset=offset)
+
+    items: List[ProductListItem] = []
+    for product, attrs in rows:
+        raw = product.raw_json or {}
+        title = raw.get("title", "Untitled product")
+
+        items.append(
+            ProductListItem(
+                id=product.id,
+                shop_product_id=product.shop_product_id,
+                title=title,
+                category=(attrs.category if attrs else None),
+                primary_use=(attrs.primary_use if attrs else None),
+            )
+        )
+
+    return items
+
+@app.get("/products/search", response_model=List[ProductListItem])
+def search_products(
+    q: Optional[str] = None,
+    category: Optional[str] = None,
+    primary_use: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    rows = search_products_with_attributes(
+        db,
+        q=q,
+        category=category,
+        primary_use=primary_use,
+        limit=limit,
+        offset=offset,
+    )
+
+    items: List[ProductListItem] = []
+    for product, attrs in rows:
+        raw = product.raw_json or {}
+        title = raw.get("title", "Untitled product")
+
+        items.append(
+            ProductListItem(
+                id=product.id,
+                shop_product_id=product.shop_product_id,
+                title=title,
+                category=(attrs.category if attrs else None),
+                primary_use=(attrs.primary_use if attrs else None),
+            )
+        )
+
+    return items
+
+
+@app.get("/products/{product_id}", response_model=ProductDetailResponse)
+def get_product_detail(
+    product_id: UUID,
+    db: Session = Depends(get_db),
+):
+    result = get_product_with_attributes(db, product_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product, attrs = result
+    return {
+        "product": product,
+        "attributes": attrs,
+    }
+
+@app.get("/products/{product_id}/summary", response_model=ProductSummaryResponse)
+def get_product_summary(
+    product_id: UUID,
+    db: Session = Depends(get_db),
+):
+    result = get_product_with_attributes(db, product_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product, attrs = result
+    summary_dict = build_product_sales_summary(product, attrs)
+
+    return summary_dict
+
