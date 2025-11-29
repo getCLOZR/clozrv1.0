@@ -5,7 +5,7 @@
 # app/services/attributes.py
 
 from typing import List, Optional
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any
 
 # import re
 
