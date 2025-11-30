@@ -1,16 +1,5 @@
 {
   "clozr-dev-store.myshopify.com": {
-    "overview_enabled": true,
-    "tone": "neutral",
-    "overview_length": "medium",
-    "custom_brand_voice": "Helpful, concise",
-    "components": {
-      "benefits": true,
-      "fit": true,
-      "key_features": true,
-      "how_it_works": true,
-      "pros_cons": false,
-      "faqs": true
-    }
+    "overview_enabled": true
   }
 }

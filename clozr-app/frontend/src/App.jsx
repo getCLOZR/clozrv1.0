@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
-import { AppProvider, Page, Layout, Card, Text } from "@shopify/polaris";
+import {
+  AppProvider,
+  Page,
+  Layout,
+  Card,
+  Text,
+  Button,
+} from "@shopify/polaris";
 import {
   Provider as AppBridgeProvider,
   useAppBridge,
 } from "@shopify/app-bridge-react";
 import { getSessionToken } from "@shopify/app-bridge-utils";
+import SettingsPage from "./pages/Settings";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function ProductCount() {
   const app = useAppBridge();
@@ -42,27 +51,54 @@ export default function App() {
   const apiKey = import.meta.env.VITE_SHOPIFY_API_KEY || "placeholder";
   const host = new URL(location.href).searchParams.get("host");
 
+  // Check if we're on settings page
+  const isSettingsPage =
+    new URLSearchParams(window.location.search).get("page") === "settings";
+
   // Content to render
   const appContent = (
     <AppProvider>
-      <Page title="CLOZR Dashboard">
+      <Page title={isSettingsPage ? "CLOZR Settings" : "CLOZR Dashboard"}>
         <Layout>
-          <Layout.Section>
-            <Card>
-              <Text variant="headingLg">Welcome to CLOZR 🎉</Text>
-              <Text>Shop: {shop || "Not provided"}</Text>
-            </Card>
-          </Layout.Section>
+          {!isSettingsPage && (
+            <>
+              <Layout.Section>
+                <Card>
+                  <Text variant="headingLg">Welcome to CLOZR 🎉</Text>
+                  <Text>Shop: {shop || "Not provided"}</Text>
+                </Card>
+              </Layout.Section>
 
-          <Layout.Section>
-            {host ? (
-              <ProductCount />
-            ) : (
-              <Card>
-                <Text>Waiting for Shopify context...</Text>
-              </Card>
-            )}
-          </Layout.Section>
+              <Layout.Section>
+                <Card>
+                  <Button
+                    primary
+                    onClick={() => {
+                      window.location.href = `/?shop=${shop}&page=settings&host=${host}`;
+                    }}
+                  >
+                    Go to Settings
+                  </Button>
+                </Card>
+              </Layout.Section>
+
+              <Layout.Section>
+                {host ? (
+                  <ProductCount />
+                ) : (
+                  <Text>Waiting for Shopify context...</Text>
+                )}
+              </Layout.Section>
+            </>
+          )}
+
+          {isSettingsPage && (
+            <Layout.Section>
+              <ErrorBoundary>
+                <SettingsPage />
+              </ErrorBoundary>
+            </Layout.Section>
+          )}
         </Layout>
       </Page>
     </AppProvider>
