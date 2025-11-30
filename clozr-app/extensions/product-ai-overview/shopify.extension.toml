@@ -1,0 +1,8 @@
+name = "Product AI Overview"
+type = "theme"
+uid = "d52fbb00-141c-d98d-aa20-70ea642efafc8592f923"
+
+[blocks]
+  [blocks.product-ai-overview]
+    name = "CLOZR AI Overview"
+    target = "section"

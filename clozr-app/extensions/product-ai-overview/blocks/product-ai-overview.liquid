@@ -1,0 +1,29 @@
+<div 
+  id="clozr-ai-wrapper"
+  data-product-id="{{ product.id }}"
+  data-shop="{{ shop.permanent_domain }}">
+  <p>Loading CLOZR...</p>
+</div>
+
+<script src="{{ 'product-ai-overview.js' | asset_url }}" defer></script>
+
+
+
+{% schema %}
+{
+  "name": "CLOZR AI Overview",
+  "target": "section",
+  "stylesheet": "product-ai-overview.css",
+  "javascript": "product-ai-overview.js",
+  "settings": [
+    {
+      "type": "header",
+      "content": "AI Overview for this product"
+    },
+    {
+      "type": "paragraph",
+      "content": "This widget displays an AI-generated overview of the product using CLOZR."
+    }
+  ]
+}
+{% endschema %}
