@@ -2,8 +2,6 @@
 
 # from typing import Dict, Any
 
-# app/services/attributes.py
-
 from typing import List, Optional
 from typing import Dict, Any
 
