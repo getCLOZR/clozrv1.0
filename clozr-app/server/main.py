@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse, HTMLResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
-from server.routes import install, auth_callback, products
+from server.routes import install, auth_callback, products, settings
 from pathlib import Path
 
 import os
@@ -23,7 +23,7 @@ async def add_ngrok_header(request: Request, call_next):
 app.include_router(install.router)
 app.include_router(auth_callback.router)
 app.include_router(products.router, prefix="/api")
-
+app.include_router(settings.router, prefix="/api")
 @app.get("/")
 def index(request: Request):
     shop = request.query_params.get("shop")
