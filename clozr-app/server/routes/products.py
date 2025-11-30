@@ -2,7 +2,7 @@
 
 import os
 import requests
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Query
 from server.session_store import get_token
 
 router = APIRouter()
@@ -10,7 +10,15 @@ router = APIRouter()
 API_VERSION = "2024-10"  # safe stable version
 
 @router.get("/products")
-def get_products(request: Request):
+def get_products(
+    request: Request,
+    mode: str = Query("summary", description="summary (default) or full"),
+):
+    """
+    Fetch products for a shop.
+    - mode=summary (default): returns just a count (used by frontend)
+    - mode=full: returns the full Shopify products JSON
+    """
     shop = request.query_params.get("shop")
 
     if not shop:
@@ -34,7 +42,15 @@ def get_products(request: Request):
     if response.status_code != 200:
         raise HTTPException(
             status_code=500,
-            detail=f"Shopify API request failed: {response.status_code} {response.text}"
+            detail=f"Shopify API request failed: {response.status_code} {response.text}",
         )
 
-    return response.json()
+    products_data = response.json()
+
+    # Full JSON for export/sharing
+    if mode == "full":
+        return products_data
+
+    # Default: just a count (for dashboard)
+    products_list = products_data.get("products", [])
+    return {"count": len(products_list)}

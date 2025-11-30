@@ -1,64 +1,88 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { AppProvider, Page, Layout, Card, Text } from "@shopify/polaris";
 import {
-  AppProvider,
-  Page,
-  Card,
-  Toggle,
-  Text,
-  Layout,
-  Banner,
-} from "@shopify/polaris";
-import "@shopify/polaris/build/esm/styles.css";
+  Provider as AppBridgeProvider,
+  useAppBridge,
+} from "@shopify/app-bridge-react";
+import { getSessionToken } from "@shopify/app-bridge-utils";
 
-/**
- * Main App Component
- * Embedded Shopify app using Polaris and App Bridge
- */
-function App() {
-  const [overviewEnabled, setOverviewEnabled] = useState(false);
+function ProductCount() {
+  const app = useAppBridge();
+  const [count, setCount] = useState(null);
 
-  const handleToggleChange = (value) => {
-    setOverviewEnabled(value);
-    // TODO: Save setting to backend
-    console.log("Product Overview enabled:", value);
-  };
+  useEffect(() => {
+    const fetchCount = async () => {
+      const shop = new URLSearchParams(window.location.search).get("shop");
+      const token = await getSessionToken(app);
+
+      const res = await fetch(`/api/products?shop=${shop}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      setCount(data.count);
+    };
+
+    fetchCount();
+  }, [app]);
 
   return (
-    <AppProvider i18n={{}}>
-      <Page title="CLOZR Settings">
+    <Card>
+      <Text variant="headingMd">Product Count</Text>
+      <Text>{count !== null ? count : "Loading..."}</Text>
+    </Card>
+  );
+}
+
+export default function App() {
+  const shop = new URLSearchParams(window.location.search).get("shop");
+
+  // Get API key from env or use placeholder (will work in embedded context)
+  const apiKey = import.meta.env.VITE_SHOPIFY_API_KEY || "placeholder";
+  const host = new URL(location.href).searchParams.get("host");
+
+  // Content to render
+  const appContent = (
+    <AppProvider>
+      <Page title="CLOZR Dashboard">
         <Layout>
           <Layout.Section>
-            <Card sectioned>
-              <div style={{ marginBottom: "1rem" }}>
-                <Text variant="headingMd" as="h2">
-                  Product Page AI Overview
-                </Text>
-                <Text variant="bodyMd" color="subdued" as="p">
-                  Enable AI-generated product overviews on your product pages.
-                </Text>
-              </div>
-              <Toggle
-                label="Enable Product Overview"
-                checked={overviewEnabled}
-                onChange={handleToggleChange}
-              />
+            <Card>
+              <Text variant="headingLg">Welcome to CLOZR 🎉</Text>
+              <Text>Shop: {shop || "Not provided"}</Text>
             </Card>
           </Layout.Section>
-          {overviewEnabled && (
-            <Layout.Section>
-              <Banner status="info">
-                <Text as="p">
-                  Product Overview is now enabled. The AI overview will appear
-                  on your product pages.
-                </Text>
-              </Banner>
-            </Layout.Section>
-          )}
+
+          <Layout.Section>
+            {host ? (
+              <ProductCount />
+            ) : (
+              <Card>
+                <Text>Waiting for Shopify context...</Text>
+              </Card>
+            )}
+          </Layout.Section>
         </Layout>
       </Page>
     </AppProvider>
   );
+
+  // Only wrap with AppBridgeProvider if we have host (embedded context)
+  if (host && apiKey !== "placeholder") {
+    return (
+      <AppBridgeProvider
+        config={{
+          apiKey: apiKey,
+          host: host,
+          forceRedirect: true,
+        }}
+      >
+        {appContent}
+      </AppBridgeProvider>
+    );
+  }
+
+  // Fallback: render without App Bridge (for testing or missing config)
+  return appContent;
 }
-
-export default App;
-

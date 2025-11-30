@@ -4,23 +4,11 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3001,
-    proxy: {
-      "/api": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-    },
-  },
-  build: {
-    outDir: "dist",
-    rollupOptions: {
-      output: {
-        entryFileNames: "js/bundle.js",
-        chunkFileNames: "js/[name].js",
-        assetFileNames: "assets/[name].[ext]",
-      },
+    port: 5173,
+    host: true,
+    hmr: {
+      protocol: "ws",
+      host: "localhost",
     },
   },
 });
-

@@ -3,8 +3,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse, HTMLResponse, Response
+from fastapi.responses import RedirectResponse, HTMLResponse, Response, FileResponse
+from fastapi.staticfiles import StaticFiles
 from server.routes import install, auth_callback, products
+from pathlib import Path
+
 import os
 
 app = FastAPI()
@@ -19,7 +22,7 @@ async def add_ngrok_header(request: Request, call_next):
 # include routers
 app.include_router(install.router)
 app.include_router(auth_callback.router)
-app.include_router(products.router)
+app.include_router(products.router, prefix="/api")
 
 @app.get("/")
 def index(request: Request):
@@ -37,7 +40,16 @@ def index(request: Request):
         return RedirectResponse(url=f"/install?shop={shop}")
 
     # If token exists → load app normally
-    return HTMLResponse("<h1>CLOZR App (authenticated)</h1>")
+    frontend_path = Path(__file__).parent.parent / "frontend" / "dist" / "index.html"
+    if frontend_path.exists():
+        return FileResponse(str(frontend_path))
+    else:
+        # Fallback if frontend not built yet
+        return HTMLResponse("""
+        <h1>CLOZR App</h1>
+        <p>Frontend not built. Run: cd frontend && npm run build</p>
+        <p>Or access the app via the embedded Shopify admin.</p>
+        """)
 
 @app.get("/health")
 def health():
@@ -48,3 +60,18 @@ def health():
 def debug_tokens():
     from server.session_store import all_tokens
     return all_tokens()
+
+
+# Mount static files if directory exists
+frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    # Mount assets directory so /assets/... paths work
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+    # Mount vite.svg if it exists
+    vite_svg = frontend_dist / "vite.svg"
+    if vite_svg.exists():
+        @app.get("/vite.svg")
+        async def vite_svg_file():
+            return FileResponse(str(vite_svg))
