@@ -30,8 +30,8 @@ def load_sample_products(reset: bool = True) -> None:
         if not merchant:
             merchant = models.Merchant(
                 id=uuid.uuid4(),
-                name="CLOZR Dev Store",
-                domain=DEV_STORE_DOMAIN,
+                # name="CLOZR Dev Store",
+                shop_domain=DEV_STORE_DOMAIN,
             )
             db.add(merchant)
             db.commit()
