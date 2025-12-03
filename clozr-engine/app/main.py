@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Optional
+from app import models
 
 from app.db import get_db
 from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductSummaryResponse
@@ -136,5 +137,30 @@ def get_product_summary(
     product, attrs = result
     summary_dict = build_product_sales_summary(product, attrs)
 
+    return summary_dict
+
+
+@app.get("/shopify/products/{shop_product_id}/summary", response_model=ProductSummaryResponse)
+def get_product_summary_by_shop_id(
+    shop_product_id: str,
+    db: Session = Depends(get_db),
+):
+    # Fetch product + attributes by Shopify product id
+    result = (
+        db.query(models.ProductRaw, models.ProductAttributes)
+        .outerjoin(
+            models.ProductAttributes,
+            models.ProductAttributes.product_id == models.ProductRaw.id,
+        )
+        .filter(models.ProductRaw.shop_product_id == shop_product_id)
+        .first()
+    )
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Product not found for this Shopify id")
+
+    product, attrs = result
+
+    summary_dict = build_product_sales_summary(product, attrs)
     return summary_dict
 

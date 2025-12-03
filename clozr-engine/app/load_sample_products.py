@@ -1,42 +1,71 @@
+
 import json
-import os
+import uuid
+from sqlalchemy import text
 
 from app.db import SessionLocal
-from app.services.product_services import ingest_product
+from app import models
+
+DEV_STORE_DOMAIN = "clozr-dev-store.myshopify.com"
+
+JSON_PATH = "../clozr-app/server/data/products_clozr_dev_store_myshopify_com.json"
 
 
-SAMPLE_FILE_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),  # clozr-engine/
-    "sample_products.json",
-)
-
-
-def import_sample_products():
+def load_sample_products(reset: bool = True) -> None:
     db = SessionLocal()
+
     try:
-        with open(SAMPLE_FILE_PATH, "r") as f:
+        if reset:
+            print("Truncating products_raw and product_attributes...")
+            db.execute(text("TRUNCATE TABLE product_attributes, products_raw RESTART IDENTITY CASCADE;"))
+            db.commit()
+
+        # Ensure merchant exists
+        merchant = (
+            db.query(models.Merchant)
+            .filter(models.Merchant.shop_domain == DEV_STORE_DOMAIN)
+            .first()
+        )
+
+        if not merchant:
+            merchant = models.Merchant(
+                id=uuid.uuid4(),
+                name="CLOZR Dev Store",
+                domain=DEV_STORE_DOMAIN,
+            )
+            db.add(merchant)
+            db.commit()
+            db.refresh(merchant)
+
+        print(f"Using merchant: {merchant.id}")
+
+        # Load JSON
+        with open(JSON_PATH, "r") as f:
             data = json.load(f)
 
-        products = data.get("products", [])
-        merchant_domain = "clozr-dev-store.myshopify.com"  # or any sample domain
+        products = data.get("products", data)
+        print(f"Found {len(products)} products in the JSON file.")
 
-        print(f"Loaded {len(products)} products from sample_products.json")
-
+        # Insert into DB
         for p in products:
-            shop_product_id = str(p["id"])
-            raw_json = p
+            shop_product_id = str(p.get("id"))
 
-            product = ingest_product(
-                db=db,
-                merchant_domain=merchant_domain,
+            product = models.ProductRaw(
+                id=uuid.uuid4(),
+                merchant_id=merchant.id,
                 shop_product_id=shop_product_id,
-                raw_json=raw_json,
+                raw_json=p,
             )
-            print(f"Ingested sample product {shop_product_id} -> {product.id}")
+
+            db.add(product)
+            print(f"Imported product {shop_product_id}: {p.get('title')}")
+
+        db.commit()
+        print("✔ Finished loading products.")
 
     finally:
         db.close()
 
 
 if __name__ == "__main__":
-    import_sample_products()
+    load_sample_products(reset=True)
