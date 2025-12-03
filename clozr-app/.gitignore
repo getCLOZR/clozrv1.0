@@ -103,5 +103,5 @@ temp/
 *.old
 
 # Exported product data for clozr-engine import
-server/data/
-server/data/*.json
+# server/data/
+# server/data/*.json
