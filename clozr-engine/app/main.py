@@ -1,5 +1,6 @@
 # app/main.py
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Optional
@@ -12,6 +13,15 @@ from app.services.product_services import (get_product_with_attributes, list_pro
 
 
 app = FastAPI(title="CLOZR Product Intelligence Engine")
+
+# Add CORS middleware to allow requests from Shopify stores
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins - for production, specify: ["https://*.myshopify.com"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")

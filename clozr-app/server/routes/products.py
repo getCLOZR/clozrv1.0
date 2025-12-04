@@ -75,15 +75,33 @@ def get_products(
         "Content-Type": "application/json"
     }
 
-    response = requests.get(url, headers=headers)
-
-    if response.status_code != 200:
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+    except requests.exceptions.RequestException as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Shopify API request failed: {response.status_code} {response.text}",
+            detail=f"Network error calling Shopify API: {str(e)}",
         )
 
-    products_data = response.json()
+    if response.status_code != 200:
+        error_detail = f"Shopify API request failed: {response.status_code}"
+        try:
+            error_body = response.json()
+            error_detail += f" - {error_body}"
+        except:
+            error_detail += f" - {response.text[:500]}"  # Limit error text length
+        raise HTTPException(
+            status_code=500,
+            detail=error_detail,
+        )
+
+    try:
+        products_data = response.json()
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Invalid JSON response from Shopify API: {str(e)}",
+        )
 
     # Save products to JSON file for clozr-engine import
     try:
