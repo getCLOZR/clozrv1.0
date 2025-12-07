@@ -52,8 +52,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Show loading state
     wrapper.innerHTML = `
-      <div style="padding: 12px; border: 1px solid #eee; border-radius: 8px; text-align: center; color: #666;">
-        <p>Loading AI overview...</p>
+      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); text-align: center; color: #64748b;">
+        <p style="margin: 0; font-size: 0.9375rem;">Loading AI overview...</p>
       </div>
     `;
 
@@ -103,16 +103,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 3️⃣ Render the AI overview with headline, bullets, and tags
     let html = `
-      <div style="padding: 1.5rem; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 600; color: #111827; padding-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb;">
-          AI Product Overview
+      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); margin: 1.5rem 0; position: relative;">
+        <h3 style="margin: 0 0 1.25rem 0; font-size: 1.375rem; font-weight: 600; color: #1e293b; letter-spacing: -0.01em; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 0, 0, 0.06);">
+          CLOZR Product Overview ⚡
         </h3>
     `;
 
-    // Add headline
+    // Add headline/summary paragraph
     if (data.headline) {
       html += `
-        <p style="font-size: 1.1rem; font-weight: 500; color: #111827; margin: 0 0 1rem 0;">
+        <p style="font-size: 0.9375rem; font-weight: 400; color: #64748b; margin: 0 0 1.5rem 0; line-height: 1.65;">
           ${escapeHtml(data.headline)}
         </p>
       `;
@@ -120,27 +120,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Add bullets
     if (data.bullets && data.bullets.length > 0) {
-      html += `<ul style="margin: 1rem 0; padding-left: 1.5rem; list-style-type: disc; color: #4b5563;">`;
-      data.bullets.forEach((bullet) => {
-        html += `<li style="margin: 0.5rem 0;">${escapeHtml(bullet)}</li>`;
+      // Limit to 5 bullets for cleaner look
+      const displayBullets = data.bullets.slice(0, 5);
+      html += `<ul style="margin: 0 0 1.5rem 0; padding-left: 1.5rem; list-style-type: disc; color: #475569; line-height: 1.8;">`;
+      displayBullets.forEach((bullet) => {
+        html += `<li style="margin: 0.625rem 0; font-size: 1.3rem;">${escapeHtml(
+          bullet
+        )}</li>`;
       });
       html += `</ul>`;
     }
 
-    // Add tags
+    // Add tags as pill-shaped badges
     if (data.tags && data.tags.length > 0) {
       html += `
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; margin-bottom: 2rem;">
       `;
       data.tags.forEach((tag) => {
         html += `
-          <span style="display: inline-block; padding: 0.375rem 0.75rem; background-color: #eff6ff; color: #1e40af; border-radius: 4px; font-size: 0.875rem; font-weight: 500;">
+          <span style="display: inline-block; padding: 0.5625rem 1rem; background-color: #e0f2fe; color: #0369a1; border-radius: 20px; font-size: 1.3rem; font-weight: 500; letter-spacing: 0.01em;">
             ${escapeHtml(tag)}
           </span>
         `;
       });
       html += `</div>`;
     }
+
+    // Add "Powered by CLOZR AI" footer
+    html += `
+      <div style="margin-top: 1.5rem; padding-top: 1rem; text-align: right;">
+        <span style="font-size: 0.75rem; color: #94a3b8; opacity: 0.7; font-weight: 400;">
+          Powered by CLOZR AI
+        </span>
+      </div>
+    `;
 
     html += `</div>`;
     wrapper.innerHTML = html;
@@ -171,8 +184,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     wrapper.innerHTML = `
-      <div style="padding: 1.5rem; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; text-align: center;">
-        <p style="margin: 0;">${escapeHtml(errorMessage)}</p>
+      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); text-align: center;">
+        <p style="margin: 0; font-size: 0.9375rem; color: #64748b; line-height: 1.6;">${escapeHtml(
+          errorMessage
+        )}</p>
       </div>
     `;
   }
