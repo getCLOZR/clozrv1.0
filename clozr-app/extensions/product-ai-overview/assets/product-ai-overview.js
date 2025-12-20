@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               type="text" 
               class="clozr-input" 
               id="clozr-input"
-              placeholder="Ask a question..."
+                placeholder="Ask about this product..."
               onkeypress="handleClozrKeyPress(event)"
             />
             <button class="clozr-send" onclick="sendClozrMessage()" aria-label="Send">
@@ -295,7 +295,7 @@ style.textContent = `
   .clozr-container {
     max-width: 100%;
     margin: 2rem 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     box-sizing: border-box;
   }
   
@@ -307,10 +307,10 @@ style.textContent = `
   /* Unified Overview Block */
   .clozr-overview {
     background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
     padding: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     height: 300px;
     max-height: 300px;
     display: flex;
@@ -321,13 +321,16 @@ style.textContent = `
 
   /* Sticky Title */
   .clozr-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1a1a1a;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
   }
 
   /* Scrollable Conversation Area */
@@ -336,12 +339,12 @@ style.textContent = `
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
     scroll-behavior: smooth;
   }
 
   .clozr-conversation::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
   }
 
   .clozr-conversation::-webkit-scrollbar-track {
@@ -349,17 +352,17 @@ style.textContent = `
   }
 
   .clozr-conversation::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
   }
 
   .clozr-conversation::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.12);
   }
 
   /* Message Styles */
   .clozr-message {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
     animation: fadeInUp 0.2s ease-out;
   }
 
@@ -370,7 +373,7 @@ style.textContent = `
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(2px);
+      transform: translateY(1px);
     }
     to {
       opacity: 1;
@@ -379,76 +382,84 @@ style.textContent = `
   }
 
   .clozr-message-assistant {
-    color: #1a1a1a;
+    color: #111827;
   }
 
   .clozr-message-user {
-    color: #4b5563;
+    color: #374151;
   }
 
   .clozr-message-text {
     font-size: 0.9375rem;
-    line-height: 1.6;
+    line-height: 1.65;
     color: inherit;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   .clozr-message-loading {
     color: #9ca3af;
-    font-style: italic;
+    font-style: normal;
   }
 
   .clozr-message-bullets {
     list-style: none;
     padding: 0;
-    margin: 0.75rem 0 0 0;
+    margin: 0.875rem 0 0 0;
   }
 
   .clozr-message-bullets li {
     font-size: 0.9375rem;
     line-height: 1.7;
-    padding: 0.25rem 0;
-    padding-left: 1.25rem;
+    padding: 0.375rem 0;
+    padding-left: 1.375rem;
     position: relative;
     color: inherit;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   .clozr-message-bullets li::before {
     content: '•';
     position: absolute;
-    left: 0;
-    color: #9ca3af;
-    font-weight: 600;
+    left: 0.5rem;
+    color: #d1d5db;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.4;
   }
 
   /* Prompt Pills */
   .clozr-prompt-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.375rem;
-    margin: 1rem 0 1.5rem 0;
+    gap: 0.5rem;
+    margin: 1.25rem 0 1.5rem 0;
   }
 
   .clozr-pill {
-    padding: 0.375rem 0.75rem;
+    padding: 0.4375rem 0.875rem;
     font-size: 0.8125rem;
     color: #6b7280;
-    background: #f9fafb;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     font-family: inherit;
     font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   .clozr-pill:hover {
-    background: #f3f4f6;
-    border-color: rgba(0, 0, 0, 0.12);
-    color: #4b5563;
+    background: #f9fafb;
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #374151;
   }
 
   .clozr-pill:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
+    background: #f3f4f6;
   }
 
   /* Q&A Responses Container */
@@ -456,73 +467,79 @@ style.textContent = `
     margin-top: 0;
   }
 
-  /* Input Field (Fixed at bottom) */
+  /* Input Field (Fixed at bottom) - Product Query Bar */
   .clozr-input-wrapper {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #f9fafb;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 0.875rem 1.5rem;
+    gap: 0.625rem;
+    background: #ffffff;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
     transition: all 0.2s ease;
     flex-shrink: 0;
   }
 
-  .clozr-input-wrapper:focus-within {
+  .clozr-input {
+    flex: 1;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    outline: none;
+    font-size: 0.875rem;
+    color: #111827;
+    background: #fafafa;
+    font-family: inherit;
+    padding: 0.625rem 1rem;
+    border-radius: 24px;
+    transition: all 0.2s ease;
+    letter-spacing: -0.01em;
+  }
+
+  .clozr-input:focus {
     background: #ffffff;
     border-color: rgba(0, 0, 0, 0.12);
     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.02);
   }
 
-  .clozr-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-size: 0.875rem;
-    color: #1f2937;
-    background: transparent;
-    font-family: inherit;
-    padding: 0.375rem 0.5rem;
-  }
-
   .clozr-input::placeholder {
     color: #9ca3af;
+    font-weight: 400;
   }
 
   .clozr-send {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border: none;
-    background: #1f2937;
+    background: #111827;
     color: #ffffff;
-    border-radius: 6px;
+    border-radius: 18px;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     flex-shrink: 0;
+    opacity: 0.9;
   }
 
   .clozr-send:hover {
-    background: #111827;
+    background: #1f2937;
+    opacity: 1;
   }
 
   .clozr-send:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 
   .clozr-send svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Loading & Error States */
   .clozr-loading,
   .clozr-error {
     background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
     padding: 2rem;
     text-align: center;
   }
@@ -531,6 +548,8 @@ style.textContent = `
   .clozr-error-text {
     font-size: 0.9375rem;
     color: #6b7280;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   /* Responsive */
@@ -541,33 +560,55 @@ style.textContent = `
     }
 
     .clozr-title {
-      padding: 1rem 1.25rem;
-      font-size: 0.9375rem;
+      padding: 0.875rem 1.25rem;
     }
 
     .clozr-conversation {
-      padding: 1.25rem;
+      padding: 1rem 1.25rem;
+    }
+
+    .clozr-message {
+      margin-bottom: 1.25rem;
     }
 
     .clozr-message-text {
       font-size: 0.875rem;
+      line-height: 1.6;
     }
 
     .clozr-message-bullets li {
       font-size: 0.875rem;
+      padding: 0.3125rem 0;
+      padding-left: 1.25rem;
+    }
+
+    .clozr-prompt-pills {
+      gap: 0.4375rem;
+      margin: 1rem 0 1.25rem 0;
     }
 
     .clozr-pill {
       font-size: 0.75rem;
-      padding: 0.3125rem 0.625rem;
+      padding: 0.375rem 0.75rem;
     }
 
     .clozr-input-wrapper {
-      padding: 0.75rem 1.25rem;
+      padding: 0.875rem 1.25rem;
     }
 
     .clozr-input {
       font-size: 0.8125rem;
+      padding: 0.5625rem 0.875rem;
+    }
+
+    .clozr-send {
+      width: 32px;
+      height: 32px;
+    }
+
+    .clozr-send svg {
+      width: 14px;
+      height: 14px;
     }
   }
 `;
