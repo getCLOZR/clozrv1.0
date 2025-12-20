@@ -17,178 +17,559 @@ document.addEventListener("DOMContentLoaded", async () => {
     return div.innerHTML;
   }
 
-  try {
-    // 1️⃣ Fetch merchant settings from your existing FastAPI backend
-    let settings = { overview_enabled: true }; // Default to enabled
+  // Chat state
+  let chatHistory = [];
+  let isChatExpanded = false;
 
+  // Default prompt suggestions
+  const defaultPrompts = [
+    "Is this good for winter?",
+    "How does this fit?",
+    "What's the material?",
+    "Is this true to size?",
+  ];
+
+  try {
+    // 1️⃣ Fetch merchant settings
+    let settings = { overview_enabled: true };
     try {
       const settingsRes = await fetch(
         `${CLOZR_APP_BACKEND_URL}/api/settings?shop=${encodeURIComponent(shop)}`
       );
-
       if (settingsRes.ok) {
         settings = await settingsRes.json();
-        console.log("CLOZR - Settings loaded:", settings);
-      } else {
-        console.warn(
-          "CLOZR: Failed to fetch settings (status:",
-          settingsRes.status,
-          "), defaulting to enabled"
-        );
       }
     } catch (settingsError) {
-      console.warn(
-        "CLOZR: Settings fetch failed (CORS/network), defaulting to enabled:",
-        settingsError
-      );
-      // Continue with default settings
+      console.warn("CLOZR: Settings fetch failed, defaulting to enabled");
     }
 
-    // If merchant disabled the feature → hide the block
     if (!settings.overview_enabled) {
       wrapper.style.display = "none";
       return;
     }
 
-    // Show loading state
+    // Show minimal loading state
     wrapper.innerHTML = `
-      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); text-align: center; color: #64748b;">
-        <p style="margin: 0; font-size: 0.9375rem;">Loading AI overview...</p>
+      <div class="clozr-container">
+        <div class="clozr-loading">
+          <span class="clozr-loading-text">Loading product insights...</span>
+        </div>
       </div>
     `;
 
-    // 2️⃣ Call CLOZR Engine (Mughees' API)
+    // 2️⃣ Fetch product summary from CLOZR Engine
     const engineUrl = `${CLOZR_ENGINE_URL}/shopify/products/${encodeURIComponent(
       productId
     )}/summary`;
-
-    console.log("CLOZR - Fetching from:", engineUrl);
-    console.log("CLOZR - Product ID:", productId);
-    console.log("CLOZR - Shop:", shop);
 
     let aiRes;
     try {
       aiRes = await fetch(engineUrl, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
     } catch (fetchError) {
-      console.error("CLOZR - Fetch error:", fetchError);
       throw new Error(`Network error: ${fetchError.message}`);
     }
 
-    console.log("CLOZR - Response status:", aiRes.status);
-    console.log("CLOZR - Response ok:", aiRes.ok);
-
     if (!aiRes.ok) {
-      let errorText = "";
-      try {
-        errorText = await aiRes.text();
-        console.error("CLOZR - Error response:", errorText);
-      } catch (e) {
-        console.error("CLOZR - Could not read error response");
-      }
-
       if (aiRes.status === 404) {
         throw new Error("Product not found in CLOZR Engine");
       }
-      throw new Error(
-        `Failed to fetch overview: ${aiRes.status} ${aiRes.statusText}. ${errorText}`
-      );
+      throw new Error(`Failed to fetch overview: ${aiRes.status}`);
     }
 
     const data = await aiRes.json();
 
-    // 3️⃣ Render the AI overview with headline, bullets, and tags
-    let html = `
-      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); margin: 1.5rem 0; position: relative;">
-        <h3 style="margin: 0 0 1.25rem 0; font-size: 1.375rem; font-weight: 600; color: #1e293b; letter-spacing: -0.01em; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 0, 0, 0.06);">
-          CLOZR Product Overview ⚡
-        </h3>
-    `;
+    // 3️⃣ Render unified overview block with summary and chat
+    renderUnifiedOverview(data);
+  } catch (err) {
+    console.error("CLOZR AI error:", err);
+    renderError(err);
+  }
 
-    // Add headline/summary paragraph
+  function renderUnifiedOverview(data) {
+    // Build initial summary as first assistant message
+    let summaryContent = "";
     if (data.headline) {
-      html += `
-        <p style="font-size: 0.9375rem; font-weight: 400; color: #64748b; margin: 0 0 1.5rem 0; line-height: 1.65;">
-          ${escapeHtml(data.headline)}
-        </p>
-      `;
+      summaryContent += `<div class="clozr-message-text">${escapeHtml(
+        data.headline
+      )}</div>`;
     }
-
-    // Add bullets
     if (data.bullets && data.bullets.length > 0) {
-      // Limit to 5 bullets for cleaner look
-      const displayBullets = data.bullets.slice(0, 5);
-      html += `<ul style="margin: 0 0 1.5rem 0; padding-left: 1.5rem; list-style-type: disc; color: #475569; line-height: 1.8;">`;
-      displayBullets.forEach((bullet) => {
-        html += `<li style="margin: 0.625rem 0; font-size: 1.3rem;">${escapeHtml(
-          bullet
-        )}</li>`;
+      summaryContent += `<ul class="clozr-message-bullets">`;
+      data.bullets.slice(0, 4).forEach((bullet) => {
+        summaryContent += `<li>${escapeHtml(bullet)}</li>`;
       });
-      html += `</ul>`;
+      summaryContent += `</ul>`;
     }
 
-    // Add tags as pill-shaped badges
-    if (data.tags && data.tags.length > 0) {
-      html += `
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; margin-bottom: 2rem;">
-      `;
-      data.tags.forEach((tag) => {
-        html += `
-          <span style="display: inline-block; padding: 0.5625rem 1rem; background-color: #e0f2fe; color: #0369a1; border-radius: 20px; font-size: 1.3rem; font-weight: 500; letter-spacing: 0.01em;">
-            ${escapeHtml(tag)}
-          </span>
-        `;
-      });
-      html += `</div>`;
-    }
+    const overviewHtml = `
+      <div class="clozr-container">
+        <div class="clozr-overview">
+          <!-- Sticky Title -->
+          <div class="clozr-title">CLOZR Overview</div>
 
-    // Add "Powered by CLOZR AI" footer
-    html += `
-      <div style="margin-top: 1.5rem; padding-top: 1rem; text-align: right;">
-        <span style="font-size: 0.75rem; color: #94a3b8; opacity: 0.7; font-weight: 400;">
-          Powered by CLOZR AI
-        </span>
+          <!-- Scrollable Conversation Area -->
+          <div class="clozr-conversation" id="clozr-conversation">
+            <!-- Initial Summary as First Message -->
+            <div class="clozr-message clozr-message-assistant">
+              ${summaryContent}
+            </div>
+
+            <!-- Prompt Pills -->
+            <div class="clozr-prompt-pills" id="clozr-prompt-pills">
+              ${defaultPrompts
+                .map(
+                  (prompt) => `
+                <button class="clozr-pill" onclick="handleClozrPrompt('${escapeHtml(
+                  prompt
+                )}')">
+                  ${escapeHtml(prompt)}
+                </button>
+              `
+                )
+                .join("")}
+            </div>
+
+            <!-- Q&A Responses Container -->
+            <div class="clozr-responses" id="clozr-responses"></div>
+          </div>
+
+          <!-- Input Field (Fixed at bottom) -->
+          <div class="clozr-input-wrapper">
+            <input 
+              type="text" 
+              class="clozr-input" 
+              id="clozr-input"
+              placeholder="Ask a question..."
+              onkeypress="handleClozrKeyPress(event)"
+            />
+            <button class="clozr-send" onclick="sendClozrMessage()" aria-label="Send">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M16 2L8 10M16 2L11 16L8 10M16 2L2 7L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     `;
+    wrapper.innerHTML = overviewHtml;
 
-    html += `</div>`;
-    wrapper.innerHTML = html;
-  } catch (err) {
-    // Log detailed error for debugging
-    console.error("CLOZR AI error:", err);
-    console.error("CLOZR - Product ID:", productId);
-    console.error("CLOZR - Shop:", shop);
-    console.error("CLOZR - Error message:", err.message);
-    console.error("CLOZR - Error stack:", err.stack);
+    // Make functions globally accessible
+    window.handleClozrPrompt = function (prompt) {
+      document.getElementById("clozr-input").value = prompt;
+      sendClozrMessage();
+    };
 
-    // Show user-friendly error message
-    let errorMessage = "AI overview unavailable at this time.";
+    window.handleClozrKeyPress = function (event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendClozrMessage();
+      }
+    };
+
+    window.sendClozrMessage = async function () {
+      const input = document.getElementById("clozr-input");
+      const question = input.value.trim();
+      if (!question) return;
+
+      // Clear input
+      input.value = "";
+
+      // Hide prompt pills after first question
+      const pills = document.getElementById("clozr-prompt-pills");
+      if (pills && pills.style.display !== "none") {
+        pills.style.display = "none";
+      }
+
+      // Add response inline
+      addInlineResponse(question);
+
+      try {
+        const response = await getChatResponse(question, productId);
+        updateLastResponse(response);
+      } catch (error) {
+        updateLastResponse(
+          "I'm having trouble processing your question right now. Please try again."
+        );
+        console.error("Chat error:", error);
+      }
+    };
+  }
+
+  function addInlineResponse(question) {
+    const conversationContainer = document.getElementById("clozr-conversation");
+
+    // Add user question
+    const userMessage = document.createElement("div");
+    userMessage.className = "clozr-message clozr-message-user";
+    userMessage.innerHTML = `<div class="clozr-message-text">${escapeHtml(
+      question
+    )}</div>`;
+    conversationContainer.appendChild(userMessage);
+
+    // Add assistant response
+    const responseDiv = document.createElement("div");
+    responseDiv.className = "clozr-message clozr-message-assistant";
+    responseDiv.innerHTML = `<div class="clozr-message-text clozr-message-loading">Thinking...</div>`;
+    conversationContainer.appendChild(responseDiv);
+
+    // Smooth scroll to bottom
+    setTimeout(() => {
+      conversationContainer.scrollTo({
+        top: conversationContainer.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 10);
+
+    return responseDiv;
+  }
+
+  function updateLastResponse(answer) {
+    const conversationContainer = document.getElementById("clozr-conversation");
+    const lastMessage = conversationContainer.querySelector(
+      ".clozr-message-assistant:last-of-type"
+    );
+    if (lastMessage) {
+      const textDiv = lastMessage.querySelector(".clozr-message-text");
+      if (textDiv) {
+        textDiv.classList.remove("clozr-message-loading");
+        textDiv.textContent = answer;
+
+        // Smooth scroll to show updated response
+        setTimeout(() => {
+          conversationContainer.scrollTo({
+            top: conversationContainer.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 10);
+      }
+    }
+  }
+
+  async function getChatResponse(question, productId) {
+    // TODO: Implement actual chat API call
+    // This is a placeholder that simulates a response
+    // In production, call: POST /api/chat or similar endpoint
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // Placeholder responses based on question keywords
+    const lowerQuestion = question.toLowerCase();
+    if (lowerQuestion.includes("winter") || lowerQuestion.includes("cold")) {
+      return "This product is designed for cold weather conditions. It features materials and construction that provide warmth and protection from winter elements.";
+    } else if (
+      lowerQuestion.includes("fit") ||
+      lowerQuestion.includes("size")
+    ) {
+      return "Based on customer feedback and product specifications, this item fits true to size. We recommend checking the size guide for specific measurements.";
+    } else if (lowerQuestion.includes("material")) {
+      return "The primary materials used in this product are selected for quality and durability. Check the product description for detailed material composition.";
+    } else {
+      return "I can help you learn more about this product. Could you be more specific about what you'd like to know?";
+    }
+  }
+
+  function renderError(err) {
+    let errorMessage = "Product insights are temporarily unavailable.";
     if (err.message && err.message.includes("not found")) {
       errorMessage =
-        "This product is being processed. AI overview will be available soon.";
-    } else if (
-      err.message &&
-      (err.message.includes("Failed to fetch") ||
-        err.message.includes("Network error"))
-    ) {
-      errorMessage =
-        "Unable to connect to AI service. This may be a CORS configuration issue.";
-      console.error(
-        "CLOZR - CORS/Network Error: The CLOZR Engine needs to allow requests from:",
-        window.location.origin
-      );
+        "This product is being processed. Insights will be available soon.";
     }
 
     wrapper.innerHTML = `
-      <div style="padding: 2rem; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; background: linear-gradient(to right, #f8fafc, #ffffff); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); text-align: center;">
-        <p style="margin: 0; font-size: 0.9375rem; color: #64748b; line-height: 1.6;">${escapeHtml(
-          errorMessage
-        )}</p>
+      <div class="clozr-container">
+        <div class="clozr-error">
+          <span class="clozr-error-text">${escapeHtml(errorMessage)}</span>
+        </div>
       </div>
     `;
   }
 });
+
+// Inject premium styles
+const style = document.createElement("style");
+style.textContent = `
+  .clozr-container {
+    max-width: 100%;
+    margin: 2rem 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    box-sizing: border-box;
+  }
+  
+  #clozr-ai-wrapper {
+    display: block;
+    box-sizing: border-box;
+  }
+
+  /* Unified Overview Block */
+  .clozr-overview {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    height: 300px;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  /* Sticky Title */
+  .clozr-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* Scrollable Conversation Area */
+  .clozr-conversation {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5rem;
+    scroll-behavior: smooth;
+  }
+
+  .clozr-conversation::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .clozr-conversation::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .clozr-conversation::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+  }
+
+  .clozr-conversation::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  /* Message Styles */
+  .clozr-message {
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.2s ease-out;
+  }
+
+  .clozr-message:last-child {
+    margin-bottom: 0;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .clozr-message-assistant {
+    color: #1a1a1a;
+  }
+
+  .clozr-message-user {
+    color: #4b5563;
+  }
+
+  .clozr-message-text {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: inherit;
+  }
+
+  .clozr-message-loading {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  .clozr-message-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0 0;
+  }
+
+  .clozr-message-bullets li {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    padding: 0.25rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+    color: inherit;
+  }
+
+  .clozr-message-bullets li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #9ca3af;
+    font-weight: 600;
+  }
+
+  /* Prompt Pills */
+  .clozr-prompt-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 1rem 0 1.5rem 0;
+  }
+
+  .clozr-pill {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    font-weight: 400;
+  }
+
+  .clozr-pill:hover {
+    background: #f3f4f6;
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #4b5563;
+  }
+
+  .clozr-pill:active {
+    transform: scale(0.97);
+  }
+
+  /* Q&A Responses Container */
+  .clozr-responses {
+    margin-top: 0;
+  }
+
+  /* Input Field (Fixed at bottom) */
+  .clozr-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f9fafb;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 0.875rem 1.5rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .clozr-input-wrapper:focus-within {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.02);
+  }
+
+  .clozr-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    color: #1f2937;
+    background: transparent;
+    font-family: inherit;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .clozr-input::placeholder {
+    color: #9ca3af;
+  }
+
+  .clozr-send {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #1f2937;
+    color: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  .clozr-send:hover {
+    background: #111827;
+  }
+
+  .clozr-send:active {
+    transform: scale(0.95);
+  }
+
+  .clozr-send svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Loading & Error States */
+  .clozr-loading,
+  .clozr-error {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .clozr-loading-text,
+  .clozr-error-text {
+    font-size: 0.9375rem;
+    color: #6b7280;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .clozr-overview {
+      height: 300px;
+      max-height: 300px;
+    }
+
+    .clozr-title {
+      padding: 1rem 1.25rem;
+      font-size: 0.9375rem;
+    }
+
+    .clozr-conversation {
+      padding: 1.25rem;
+    }
+
+    .clozr-message-text {
+      font-size: 0.875rem;
+    }
+
+    .clozr-message-bullets li {
+      font-size: 0.875rem;
+    }
+
+    .clozr-pill {
+      font-size: 0.75rem;
+      padding: 0.3125rem 0.625rem;
+    }
+
+    .clozr-input-wrapper {
+      padding: 0.75rem 1.25rem;
+    }
+
+    .clozr-input {
+      font-size: 0.8125rem;
+    }
+  }
+`;
+
+document.head.appendChild(style);
