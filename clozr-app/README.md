@@ -63,9 +63,9 @@ SCOPES=read_products,write_products
 
 ### Running the App (4 Terminal Windows)
 
-**Start these terminals in order:**
+**Start terminals in this order: 1 → 3 → 2**
 
-#### Terminal 1 - Backend (FastAPI)
+#### Terminal 1 - Backend (FastAPI) - Start First
 
 ```bash
 cd ~/Desktop/CLOZR/clozrv1.0/clozr-app
@@ -75,17 +75,9 @@ uvicorn server.main:app --reload --port 3000 --host 0.0.0.0
 - Runs FastAPI server on port 3000
 - `--host 0.0.0.0` allows external connections (needed for Shopify/ngrok)
 
-#### Terminal 2 - Frontend (React/Vite)
+#### Terminal 3 - Shopify CLI (Deploys Extensions) - Start Second
 
-```bash
-cd ~/Desktop/CLOZR/clozrv1.0/clozr-app/frontend
-npm run dev
-```
-
-- Runs Vite dev server (usually port 5173)
-- Hot reload for frontend changes
-
-#### Terminal 3 - Shopify CLI (Deploys Extensions)
+**Important: Start this after Terminal 1, before Terminal 2**
 
 ```bash
 cd ~/Desktop/CLOZR/clozrv1.0/clozr-app
@@ -95,6 +87,17 @@ shopify app dev --use-localhost
 - **Required** for theme extensions to appear in theme editor
 - Deploys and watches for extension changes
 - Handles OAuth, tunneling, and extension deployment
+
+#### Terminal 2 - Frontend (React/Vite) - Start Third
+
+```bash
+cd ~/Desktop/CLOZR/clozrv1.0/clozr-app/frontend
+npm run dev
+```
+
+- Runs Vite dev server (usually port 5173)
+- Hot reload for frontend changes
+- Can start anytime after Terminal 1 and 3
 
 #### Terminal 4 - Ngrok (Only if needed)
 
@@ -107,7 +110,10 @@ ngrok http 127.0.0.1:3000
 
 ### Installation & Setup
 
-1. **Start all terminals** (Terminals 1, 2, 3 in order)
+1. **Start terminals in this order**:
+   - Terminal 1 (Backend) - start first
+   - Terminal 3 (Shopify CLI) - start second (deploys extensions)
+   - Terminal 2 (Frontend) - can start anytime
 2. **Install the app**:
    - Visit: `http://localhost:3000/install?shop=yourstore.myshopify.com`
    - Or access via Shopify admin → Apps → Your app
