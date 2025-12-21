@@ -25,6 +25,7 @@ async def auth_callback(request: Request):
 
     # save token (dev only; persist in db in prod)
     save_token(shop, access_token)
+    print(f"✅ Token saved for shop: {shop}")
 
     # Return a friendly HTML page (Shopify will then load embedded app root)
     body = f"""

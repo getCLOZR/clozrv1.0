@@ -34,50 +34,96 @@ clozr-app/
         └── schema.json           # Extension schema
 ```
 
-## Setup Instructions
+## Development Workflow
 
-### 1. Backend Setup
+### Prerequisites
+
+1. Install Python dependencies:
 
 ```bash
 cd server
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the `server/` directory (copy from `.env.example`):
-```bash
-SHOPIFY_API_KEY=your_api_key
-SHOPIFY_API_SECRET=your_api_secret
-SHOPIFY_REDIRECT_URI=http://localhost:3000/api/auth/callback
-```
-
-Run the server:
-```bash
-python main.py
-# Or: uvicorn main:app --reload --port 3000
-```
-
-### 2. Frontend Setup
+2. Install Node dependencies:
 
 ```bash
 cd frontend
 npm install
+```
+
+3. Create a `.env` file in the `server/` directory:
+
+```bash
+SHOPIFY_API_KEY=your_api_key
+SHOPIFY_API_SECRET=your_api_secret
+HOST=https://your-ngrok-url.ngrok-free.dev  # Or your deployment URL
+SCOPES=read_products,write_products
+```
+
+### Running the App (4 Terminal Windows)
+
+**Start these terminals in order:**
+
+#### Terminal 1 - Backend (FastAPI)
+
+```bash
+cd ~/Desktop/CLOZR/clozrv1.0/clozr-app
+uvicorn server.main:app --reload --port 3000 --host 0.0.0.0
+```
+
+- Runs FastAPI server on port 3000
+- `--host 0.0.0.0` allows external connections (needed for Shopify/ngrok)
+
+#### Terminal 2 - Frontend (React/Vite)
+
+```bash
+cd ~/Desktop/CLOZR/clozrv1.0/clozr-app/frontend
 npm run dev
 ```
 
-### 3. Shopify App Configuration
+- Runs Vite dev server (usually port 5173)
+- Hot reload for frontend changes
 
-1. Create a Shopify app in your Partner Dashboard
-2. Set the App URL to: `http://localhost:3000`
-3. Set the Allowed redirection URL(s) to: `http://localhost:3000/api/auth/callback`
-4. Copy your API Key and API Secret to the `.env` file
+#### Terminal 3 - Shopify CLI (Deploys Extensions)
 
-### 4. Installation Flow
+```bash
+cd ~/Desktop/CLOZR/clozrv1.0/clozr-app
+shopify app dev --use-localhost
+```
 
-1. Visit: `http://localhost:3000/api/install?shop=yourstore.myshopify.com`
-2. Complete OAuth flow
-3. App will redirect to embedded app
+- **Required** for theme extensions to appear in theme editor
+- Deploys and watches for extension changes
+- Handles OAuth, tunneling, and extension deployment
+
+#### Terminal 4 - Ngrok (Only if needed)
+
+```bash
+ngrok http 127.0.0.1:3000
+```
+
+- Only needed if you require a public URL for testing
+- Provides HTTPS tunnel to localhost:3000
+
+### Installation & Setup
+
+1. **Start all terminals** (Terminals 1, 2, 3 in order)
+2. **Install the app**:
+   - Visit: `http://localhost:3000/install?shop=yourstore.myshopify.com`
+   - Or access via Shopify admin → Apps → Your app
+   - Complete OAuth flow
+3. **Add theme extension**:
+   - Go to Shopify Admin → Online Store → Themes
+   - Click "Customize" on your active theme
+   - Navigate to a product page
+   - Click "Add block" → Look for "CLOZR AI Overview"
+   - Add the block to your product template
+
+### Important Notes
+
+- **Token Storage**: Currently in-memory only. If server restarts, you'll need to reinstall the app.
+- **Extension Deployment**: Terminal 3 (`shopify app dev`) must be running for extensions to appear in theme editor.
+- **Port 3000**: Backend must run on port 3000 for Shopify app configuration.
 
 ## Development Notes
 
@@ -97,4 +143,3 @@ npm run dev
 ## License
 
 Proprietary - CLOZR
-

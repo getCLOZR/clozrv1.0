@@ -63,9 +63,17 @@ def get_products(
         raise HTTPException(status_code=400, detail="Missing ?shop query parameter")
 
     # Load stored access token
+    from server.session_store import SHOP_TOKENS
     token = get_token(shop)
     if not token:
-        raise HTTPException(status_code=403, detail="No access token for this shop. Please reinstall the app.")
+        print(f"❌ No token found for shop: {shop}")
+        print(f"Available shops in session store: {list(SHOP_TOKENS.keys())}")
+        raise HTTPException(
+            status_code=403, 
+            detail="No access token for this shop. Please reinstall the app."
+        )
+    
+    print(f"✅ Token found for shop: {shop}")
 
     # Build Admin API URL
     url = f"https://{shop}/admin/api/{API_VERSION}/products.json"
