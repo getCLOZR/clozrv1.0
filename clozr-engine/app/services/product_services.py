@@ -153,6 +153,8 @@ def search_products_with_attributes(
     sliced = filtered[offset : offset + limit]
     return sliced
 
+## Not using yet put still wanna keep it for future use - Mughees
+
 def build_product_sales_summary(product: models.ProductRaw, attrs: Optional[models.ProductAttributes],) -> dict:
     """
     V0 heuristic summary builder.
@@ -214,10 +216,30 @@ def build_product_sales_summary(product: models.ProductRaw, attrs: Optional[mode
     if tags:
         bullets.append("Key tags: " + ", ".join(tags) + ".")
 
+    
+
     return {
         "product_id": product.id,
         "title": title,
         "headline": headline,
         "bullets": bullets,
         "tags": tags,
+    }
+
+def build_product_customer_overview_payload(
+    product: models.ProductRaw,
+    overview: str,
+) -> dict:
+    """
+    Minimal customer-facing payload for the CLOZR Overview box:
+    - title
+    - short AI-generated paragraph
+    """
+    raw = product.raw_json or {}
+    title: str = raw.get("title", "Untitled product")
+
+    return {
+        "product_id": str(product.id),
+        "title": title,
+        "overview": overview,
     }

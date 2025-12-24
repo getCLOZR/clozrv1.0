@@ -7,9 +7,11 @@ from typing import List, Optional
 from app import models
 
 from app.db import get_db
-from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductSummaryResponse
+from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductOverviewResponse, ProductSummaryResponse
 from app.services import product_services
 from app.services.product_services import (get_product_with_attributes, list_products_with_attributes, search_products_with_attributes, build_product_sales_summary)
+from app.services.ai_overview_services import get_or_generate_ai_overview
+from app.services.product_services import build_product_customer_overview_payload
 
 
 app = FastAPI(title="CLOZR Product Intelligence Engine")
@@ -150,7 +152,7 @@ def get_product_summary(
     return summary_dict
 
 
-@app.get("/shopify/products/{shop_product_id}/summary", response_model=ProductSummaryResponse)
+@app.get("/shopify/products/{shop_product_id}/summary", response_model=ProductOverviewResponse)
 def get_product_summary_by_shop_id(
     shop_product_id: str,
     db: Session = Depends(get_db),
@@ -171,6 +173,8 @@ def get_product_summary_by_shop_id(
 
     product, attrs = result
 
-    summary_dict = build_product_sales_summary(product, attrs)
-    return summary_dict
+    overview = get_or_generate_ai_overview(db, product, attrs)
+    return build_product_customer_overview_payload(product, overview)
+
+
 

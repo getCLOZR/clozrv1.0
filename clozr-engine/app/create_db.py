@@ -1,5 +1,5 @@
 from app.db import engine, Base
-from app import models  # important so SQLAlchemy sees the models
+import app.models
 
 
 def init_db():

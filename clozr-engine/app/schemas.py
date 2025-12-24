@@ -73,3 +73,9 @@ class ProductSummaryResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ProductOverviewResponse(BaseModel):
+    product_id: UUID
+    title: str
+    overview: str
