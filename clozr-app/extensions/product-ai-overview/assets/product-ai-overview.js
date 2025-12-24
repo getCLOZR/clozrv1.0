@@ -90,18 +90,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderUnifiedOverview(data) {
     // Build initial summary as first assistant message
+    // New format: data.overview (single AI-generated text)
+    // Old format: data.headline + data.bullets (fallback for compatibility)
     let summaryContent = "";
-    if (data.headline) {
+
+    if (data.overview) {
+      // New LLM-generated format
+      summaryContent += `<div class="clozr-message-text">${escapeHtml(
+        data.overview
+      )}</div>`;
+    } else if (data.headline) {
+      // Fallback to old format for compatibility
       summaryContent += `<div class="clozr-message-text">${escapeHtml(
         data.headline
       )}</div>`;
-    }
-    if (data.bullets && data.bullets.length > 0) {
-      summaryContent += `<ul class="clozr-message-bullets">`;
-      data.bullets.slice(0, 4).forEach((bullet) => {
-        summaryContent += `<li>${escapeHtml(bullet)}</li>`;
-      });
-      summaryContent += `</ul>`;
+      if (data.bullets && data.bullets.length > 0) {
+        summaryContent += `<ul class="clozr-message-bullets">`;
+        data.bullets.slice(0, 4).forEach((bullet) => {
+          summaryContent += `<li>${escapeHtml(bullet)}</li>`;
+        });
+        summaryContent += `</ul>`;
+      }
     }
 
     const overviewHtml = `
@@ -311,8 +320,8 @@ style.textContent = `
     border-radius: 8px;
     padding: 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    height: 300px;
-    max-height: 300px;
+    height: 240px;
+    max-height: 240px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
