@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Chat state
   let chatHistory = [];
   let isChatExpanded = false;
+  let initialOverview = null; // Store the initial AI overview for context
 
   // Default prompt suggestions
   const defaultPrompts = [
@@ -80,6 +81,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const data = await aiRes.json();
+
+    // Store initial overview for chat context
+    initialOverview = data.overview || "";
 
     // 3️⃣ Render unified overview block with summary and chat
     renderUnifiedOverview(data);
@@ -258,26 +262,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function getChatResponse(question, productId) {
-    // TODO: Implement actual chat API call
-    // This is a placeholder that simulates a response
-    // In production, call: POST /api/chat or similar endpoint
+    // Call CLOZR Engine chat endpoint with product context
+    if (!initialOverview) {
+      throw new Error("Initial overview not available");
+    }
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    const chatUrl = `${CLOZR_ENGINE_URL}/shopify/products/chat`;
 
-    // Placeholder responses based on question keywords
-    const lowerQuestion = question.toLowerCase();
-    if (lowerQuestion.includes("winter") || lowerQuestion.includes("cold")) {
-      return "This product is designed for cold weather conditions. It features materials and construction that provide warmth and protection from winter elements.";
-    } else if (
-      lowerQuestion.includes("fit") ||
-      lowerQuestion.includes("size")
-    ) {
-      return "Based on customer feedback and product specifications, this item fits true to size. We recommend checking the size guide for specific measurements.";
-    } else if (lowerQuestion.includes("material")) {
-      return "The primary materials used in this product are selected for quality and durability. Check the product description for detailed material composition.";
-    } else {
-      return "I can help you learn more about this product. Could you be more specific about what you'd like to know?";
+    const requestPayload = {
+      product_id: productId,
+      shop_domain: shop,
+      initial_overview: initialOverview,
+      question: question,
+    };
+
+    try {
+      const response = await fetch(chatUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestPayload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Chat API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      return (
+        data.response ||
+        "I apologize, but I couldn't generate a response. Please try again."
+      );
+    } catch (error) {
+      console.error("CLOZR Chat error:", error);
+      console.error("CLOZR Chat request payload:", requestPayload);
+      console.error("CLOZR Chat URL:", chatUrl);
+      throw error;
     }
   }
 

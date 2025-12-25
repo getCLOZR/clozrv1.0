@@ -7,11 +7,12 @@ from typing import List, Optional
 from app import models
 
 from app.db import get_db
-from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductOverviewResponse, ProductSummaryResponse
+from app.schemas import ProductIngestPayload, ProductIntelligenceResponse, ProductDetailResponse, ProductListItem, ProductOverviewResponse, ProductSummaryResponse, ProductChatRequest, ProductChatResponse
 from app.services import product_services
 from app.services.product_services import (get_product_with_attributes, list_products_with_attributes, search_products_with_attributes, build_product_sales_summary)
 from app.services.ai_overview_services import get_or_generate_ai_overview
 from app.services.product_services import build_product_customer_overview_payload
+from app.services.openai_overview import generate_chat_response
 
 
 app = FastAPI(title="CLOZR Product Intelligence Engine")
@@ -176,5 +177,77 @@ def get_product_summary_by_shop_id(
     overview = get_or_generate_ai_overview(db, product, attrs)
     return build_product_customer_overview_payload(product, overview)
 
+
+@app.post("/shopify/products/chat", response_model=ProductChatResponse)
+def chat_about_product(
+    payload: ProductChatRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Chat endpoint for product questions.
+    Accepts product context (ID, shop, initial overview) and user question.
+    Returns LLM-generated response grounded in product context.
+    """
+    try:
+        print(f"Chat request received: product_id={payload.product_id}, shop={payload.shop_domain}, question={payload.question[:50]}...")
+        
+        # Fetch merchant first
+        merchant = db.query(models.Merchant).filter(
+            models.Merchant.shop_domain == payload.shop_domain
+        ).first()
+
+        raw_json = {}
+        attrs_dict = {}
+        
+        if merchant:
+            # Fetch product + attributes for additional context
+            result = (
+                db.query(models.ProductRaw, models.ProductAttributes)
+                .outerjoin(
+                    models.ProductAttributes,
+                    models.ProductAttributes.product_id == models.ProductRaw.id,
+                )
+                .filter(models.ProductRaw.shop_product_id == payload.product_id)
+                .filter(models.ProductRaw.merchant_id == merchant.id)
+                .first()
+            )
+
+            if result:
+                product, attrs = result
+                raw_json = product.raw_json or {}
+                if attrs:
+                    attrs_dict = {
+                        "category": attrs.category,
+                        "style": attrs.style,
+                        "warmth_level": attrs.warmth_level,
+                        "fit": attrs.fit,
+                        "material_main": attrs.material_main,
+                        "price_band": attrs.price_band,
+                        "primary_use": attrs.primary_use,
+                        "extra_metadata": attrs.extra_metadata,
+                    }
+                print(f"Product found: {raw_json.get('title', 'Unknown')}")
+            else:
+                print(f"Product not found: product_id={payload.product_id}, merchant_id={merchant.id}")
+        else:
+            print(f"Merchant not found: shop_domain={payload.shop_domain}")
+
+        # Generate LLM response with context
+        response = generate_chat_response(
+            product_id=payload.product_id,
+            shop_domain=payload.shop_domain,
+            initial_overview=payload.initial_overview,
+            question=payload.question,
+            raw_json=raw_json,
+            attrs=attrs_dict,
+        )
+
+        print(f"Chat response generated: {response[:50]}...")
+        return ProductChatResponse(response=response)
+    except Exception as e:
+        import traceback
+        print(f"Error in chat_about_product: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
 

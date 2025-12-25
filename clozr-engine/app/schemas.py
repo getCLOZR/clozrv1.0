@@ -79,3 +79,14 @@ class ProductOverviewResponse(BaseModel):
     product_id: UUID
     title: str
     overview: str
+
+
+class ProductChatRequest(BaseModel):
+    product_id: str  # Shopify product ID
+    shop_domain: str
+    initial_overview: str  # The AI-generated overview summary
+    question: str  # User's question
+
+
+class ProductChatResponse(BaseModel):
+    response: str  # LLM-generated response
