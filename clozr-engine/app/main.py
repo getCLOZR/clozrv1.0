@@ -174,8 +174,8 @@ def get_product_summary_by_shop_id(
 
     product, attrs = result
 
-    overview = get_or_generate_ai_overview(db, product, attrs)
-    return build_product_customer_overview_payload(product, overview)
+    overview, questions = get_or_generate_ai_overview(db, product, attrs)  # return both
+    return build_product_customer_overview_payload(product, overview, questions)
 
 
 @app.post("/shopify/products/chat", response_model=ProductChatResponse)

@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db import Base
 import uuid
 from sqlalchemy.orm import relationship
-from pgvector.sqlalchemy import Vector
+
 
 
 class Merchant(Base):
@@ -74,6 +74,8 @@ class ProductAIOverview(Base):
         onupdate=func.now(),
         nullable=False,
     )
+    suggested_questions = Column(JSON, nullable=False, server_default="[]")
+
 
     product = relationship("ProductRaw", back_populates="ai_overview_row")
 

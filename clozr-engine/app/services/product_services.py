@@ -226,20 +226,16 @@ def build_product_sales_summary(product: models.ProductRaw, attrs: Optional[mode
         "tags": tags,
     }
 
-def build_product_customer_overview_payload(
-    product: models.ProductRaw,
-    overview: str,
-) -> dict:
+def build_product_customer_overview_payload(product, overview: str, questions: list[str]) -> dict:
     """
     Minimal customer-facing payload for the CLOZR Overview box:
     - title
     - short AI-generated paragraph
     """
     raw = product.raw_json or {}
-    title: str = raw.get("title", "Untitled product")
-
     return {
         "product_id": str(product.id),
-        "title": title,
+        "title": raw.get("title", "Untitled product"),
         "overview": overview,
+        "suggested_questions": questions,
     }

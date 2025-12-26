@@ -1,8 +1,21 @@
 import os
 from openai import OpenAI
+from app.prompts.render_overview_prompt import render_overview_system_prompt
+import json
 
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY is not set")
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 MODEL = os.getenv("OPENAI_OVERVIEW_MODEL", "gpt-4o-mini")
+
+
+
+PROMPT_VERSION = "v1.0"
+
 
 
 def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
@@ -12,7 +25,6 @@ def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
     title = raw_json.get("title", "") or ""
     vendor = raw_json.get("vendor", "") or ""
     product_type = raw_json.get("product_type", "") or ""
-    tags = raw_json.get("tags", "") or ""
     body = (raw_json.get("body_html", "") or "")[:1200]
     variants = raw_json.get("variants") or []
 
@@ -20,27 +32,28 @@ def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
     price = v0.get("price")
     variant_title = v0.get("title")
 
-    # “facts” keeps the model grounded (don’t dump full JSON)
     facts = {
         "title": title,
         "vendor": vendor,
         "product_type": product_type,
-        "tags": tags,
         "description": body,
         "example_variant": {"title": variant_title, "price": price},
         "inferred_attributes": attrs,
     }
 
-    system = (
-        "You are CLOZR. Write a customer-friendly overview paragraph for a product page. "
-        "Use ONLY the provided facts. Do not guess. "
-        "2–3 sentences max. No bullet points. No emojis. No tags list."
-    )
+    # system = (
+    #     "You are CLOZR. Write a customer-friendly overview paragraph for a product page. "
+    #     "Use ONLY the provided facts. Do not guess. "
+    #     "2–3 sentences max. No bullet points. No emojis. No tags list."
+    # )
+
+    system_prompt = render_overview_system_prompt()
+
 
     resp = client.responses.create(
         model=MODEL,
         input=[
-            {"role": "system", "content": system},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": f"FACTS:\n{facts}\n\nWrite the overview."},
         ],
         temperature=0.2,
@@ -49,8 +62,8 @@ def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
     text = (resp.output_text or "").strip()
 
     # Safety: keep it short
-    if len(text) > 450:
-        text = text[:450].rsplit(" ", 1)[0].strip() + "…"
+    if len(text) > 250:
+        text = text[:250].rsplit(" ", 1)[0].strip() + "…"
 
     return text
 
@@ -131,4 +144,80 @@ def generate_chat_response(
         print(f"Error in generate_chat_response: {str(e)}")
         print(traceback.format_exc())
         # Fallback response if LLM fails
-        return f"I apologize, but I'm having trouble processing your question right now. Please try again in a moment."
+        return f"I apologize, but I'm having trouble processing your question right now. Please try again in a moment."  # noqa: F541
+    
+
+def generate_suggested_questions(raw_json: dict, attrs: dict | None) -> list[str]:
+
+    raw_json = raw_json or {}
+    attrs = attrs or {}
+
+    title = raw_json.get("title", "") or ""
+    vendor = raw_json.get("vendor", "") or ""
+    product_type = raw_json.get("product_type", "") or ""
+    body = (raw_json.get("body_html", "") or "")[:900]
+    tags = raw_json.get("tags", "") or ""
+    variants = raw_json.get("variants") or []
+    options = raw_json.get("options") or []
+
+    v0 = variants[0] if variants else {}
+    price = v0.get("price")
+    variant_title = v0.get("title")
+
+    facts = {
+        "title": title,
+        "vendor": vendor,
+        "product_type": product_type,
+        "tags": tags,
+        "description": body,
+        "options": options,
+        "example_variant": {"title": variant_title, "price": price},
+        "inferred_attributes": attrs,
+    }
+
+    fallback = [
+        "What size/fit should I choose?",
+        "What materials is this made from and how do I care for it?",
+        "What’s included and is it compatible with what I already have?",
+    ]
+
+    system = """
+You generate shopper questions for a product page.
+Return ONLY a valid JSON array of exactly 3 strings, like:
+["Question 1?", "Question 2?", "Question 3?"]
+
+Rules:
+- Each question should be specific to the facts provided (materials, sizing, compatibility, what's included, care, use-case, etc.)
+- If a key detail is missing, ask about it rather than guessing.
+- No bullets, no extra text, no markdown.
+""".strip()
+
+    try:
+        resp = client.responses.create(
+            model=MODEL,
+            input=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": f"FACTS:\n{facts}\n\nReturn the JSON array now."},
+            ],
+            temperature=0.2,
+        )
+
+        raw = (resp.output_text or "").strip()
+        if not raw:
+            return fallback
+
+        questions = json.loads(raw)
+
+        if not isinstance(questions, list):
+            return fallback
+
+        questions = [q.strip() for q in questions if isinstance(q, str) and q.strip()]
+        if len(questions) < 3:
+            questions += [q for q in fallback if q not in questions]
+        return questions[:3]
+
+    except Exception as e:
+        print("QUESTION GEN ERROR:", repr(e))
+        return fallback
+
+

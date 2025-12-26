@@ -79,6 +79,7 @@ class ProductOverviewResponse(BaseModel):
     product_id: UUID
     title: str
     overview: str
+    suggested_questions: list[str]
 
 
 class ProductChatRequest(BaseModel):
