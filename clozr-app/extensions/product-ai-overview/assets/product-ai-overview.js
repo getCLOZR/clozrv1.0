@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let isChatExpanded = false;
   let initialOverview = null; // Store the initial AI overview for context
 
-  // Default prompt suggestions
+  // Fallback prompt suggestions (used if API doesn't provide questions)
   const defaultPrompts = [
     "Is this good for winter?",
     "How does this fit?",
@@ -85,14 +85,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Store initial overview for chat context
     initialOverview = data.overview || "";
 
+    // Extract AI-generated suggested questions, fallback to defaults
+    const suggestedQuestions =
+      data.suggested_questions &&
+      Array.isArray(data.suggested_questions) &&
+      data.suggested_questions.length > 0
+        ? data.suggested_questions
+        : defaultPrompts;
+
     // 3️⃣ Render unified overview block with summary and chat
-    renderUnifiedOverview(data);
+    renderUnifiedOverview(data, suggestedQuestions);
   } catch (err) {
     console.error("CLOZR AI error:", err);
     renderError(err);
   }
 
-  function renderUnifiedOverview(data) {
+  function renderUnifiedOverview(data, suggestedQuestions = defaultPrompts) {
     // Build initial summary as first assistant message
     // New format: data.overview (single AI-generated text)
     // Old format: data.headline + data.bullets (fallback for compatibility)
@@ -130,9 +138,10 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${summaryContent}
             </div>
 
-            <!-- Prompt Pills -->
+            <!-- Prompt Pills (AI-generated or fallback) -->
             <div class="clozr-prompt-pills" id="clozr-prompt-pills">
-              ${defaultPrompts
+              ${suggestedQuestions
+                .slice(0, 4) // Limit to 4 questions max
                 .map(
                   (prompt) => `
                 <button class="clozr-pill" onclick="handleClozrPrompt('${escapeHtml(
