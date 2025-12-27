@@ -61,10 +61,6 @@ def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
 
     text = (resp.output_text or "").strip()
 
-    # Safety: keep it short
-    if len(text) > 250:
-        text = text[:250].rsplit(" ", 1)[0].strip() + "…"
-
     return text
 
 
@@ -100,7 +96,7 @@ def generate_chat_response(
         "vendor": vendor,
         "product_type": product_type,
         "tags": tags,
-        "description": body[:600],  # Keep it concise
+        "description": body,
         "example_variant": {"title": variant_title, "price": price},
         "inferred_attributes": attrs,
     }
@@ -132,10 +128,6 @@ def generate_chat_response(
         )
 
         text = (resp.output_text or "").strip()
-
-        # Safety: keep it reasonable length
-        if len(text) > 300:
-            text = text[:300].rsplit(" ", 1)[0].strip() + "…"
 
         return text
     except Exception as e:
@@ -178,13 +170,12 @@ def generate_suggested_questions(raw_json: dict, attrs: dict | None) -> list[str
     fallback = [
         "What size/fit should I choose?",
         "What materials is this made from and how do I care for it?",
-        "What’s included and is it compatible with what I already have?",
     ]
 
     system = """
 You generate shopper questions for a product page.
-Return ONLY a valid JSON array of exactly 3 strings, like:
-["Question 1?", "Question 2?", "Question 3?"]
+Return ONLY a valid JSON array of exactly 2 strings, like:
+["Question 1?", "Question 2?"]
 
 Rules:
 - Each question should be specific to the facts provided (materials, sizing, compatibility, what's included, care, use-case, etc.)
@@ -212,9 +203,9 @@ Rules:
             return fallback
 
         questions = [q.strip() for q in questions if isinstance(q, str) and q.strip()]
-        if len(questions) < 3:
+        if len(questions) < 2:
             questions += [q for q in fallback if q not in questions]
-        return questions[:3]
+        return questions[:2]
 
     except Exception as e:
         print("QUESTION GEN ERROR:", repr(e))
