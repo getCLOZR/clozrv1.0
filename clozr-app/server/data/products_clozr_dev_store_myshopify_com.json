@@ -1,6 +1,133 @@
 {
   "products": [
     {
+      "id": 8585115926727,
+      "title": "Apex Strat Pro Electric Guitar – Alder Body, Maple Neck",
+      "body_html": "<p data-start=\"484\" data-end=\"769\">The Apex Strat Pro Electric Guitar is built for players who want clarity, versatility, and smooth playability across multiple genres. Designed for both studio and stage use, it delivers a balanced tone that works equally well for clean blues, crunchy rock, and expressive lead playing.</p>\n<p data-start=\"774\" data-end=\"1051\">Featuring a solid alder body paired with a maple neck, the Strat Pro offers bright articulation with a warm low end. The comfortable “C” neck profile makes it ideal for long playing sessions, while the responsive single-coil pickups provide dynamic range and touch sensitivity.</p>\n<p data-start=\"1056\" data-end=\"1337\">Whether you’re an intermediate guitarist upgrading your setup or an experienced player looking for a reliable workhorse, the Apex Strat Pro adapts to your style with ease. Its classic design and modern craftsmanship make it a dependable choice for everyday playing and performance.</p>",
+      "vendor": "Apex Instruments",
+      "product_type": "Electrice Guitar",
+      "created_at": "2025-12-27T01:43:18-05:00",
+      "handle": "apex-strat-pro-electric-guitar-alder-body-maple-neck",
+      "updated_at": "2025-12-27T01:48:11-05:00",
+      "published_at": "2025-12-27T01:43:19-05:00",
+      "template_suffix": "",
+      "published_scope": "global",
+      "tags": "alder body, blues, electric guitar, funk, intermediate, live performance, maple neck, professional, rock, single coil, strat style, studio",
+      "status": "active",
+      "admin_graphql_api_id": "gid://shopify/Product/8585115926727",
+      "variants": [
+        {
+          "id": 45987600924871,
+          "product_id": 8585115926727,
+          "title": "Sunburst",
+          "price": "1199.00",
+          "position": 1,
+          "inventory_policy": "deny",
+          "compare_at_price": null,
+          "option1": "Sunburst",
+          "option2": null,
+          "option3": null,
+          "created_at": "2025-12-27T01:43:18-05:00",
+          "updated_at": "2025-12-27T01:48:11-05:00",
+          "taxable": true,
+          "barcode": "",
+          "fulfillment_service": "manual",
+          "grams": 0,
+          "inventory_management": "shopify",
+          "requires_shipping": true,
+          "sku": null,
+          "weight": 0.0,
+          "weight_unit": "lb",
+          "inventory_item_id": 48105539829959,
+          "inventory_quantity": 27,
+          "old_inventory_quantity": 27,
+          "admin_graphql_api_id": "gid://shopify/ProductVariant/45987600924871",
+          "image_id": null
+        },
+        {
+          "id": 45987600957639,
+          "product_id": 8585115926727,
+          "title": "Olympic White",
+          "price": "1199.00",
+          "position": 2,
+          "inventory_policy": "deny",
+          "compare_at_price": null,
+          "option1": "Olympic White",
+          "option2": null,
+          "option3": null,
+          "created_at": "2025-12-27T01:43:18-05:00",
+          "updated_at": "2025-12-27T01:48:11-05:00",
+          "taxable": true,
+          "barcode": "",
+          "fulfillment_service": "manual",
+          "grams": 0,
+          "inventory_management": "shopify",
+          "requires_shipping": true,
+          "sku": null,
+          "weight": 0.0,
+          "weight_unit": "lb",
+          "inventory_item_id": 48105539862727,
+          "inventory_quantity": 13,
+          "old_inventory_quantity": 13,
+          "admin_graphql_api_id": "gid://shopify/ProductVariant/45987600957639",
+          "image_id": null
+        }
+      ],
+      "options": [
+        {
+          "id": 10869696168135,
+          "product_id": 8585115926727,
+          "name": "Instrument color",
+          "position": 1,
+          "values": [
+            "Sunburst",
+            "Olympic White"
+          ]
+        }
+      ],
+      "images": [
+        {
+          "id": 45112820564167,
+          "alt": null,
+          "position": 1,
+          "product_id": 8585115926727,
+          "created_at": "2025-12-27T01:38:00-05:00",
+          "updated_at": "2025-12-27T01:43:19-05:00",
+          "admin_graphql_api_id": "gid://shopify/MediaImage/36173917749447",
+          "width": 2560,
+          "height": 2560,
+          "src": "https://cdn.shopify.com/s/files/1/0745/2128/0711/files/guitar.jpg?v=1766817482",
+          "variant_ids": []
+        },
+        {
+          "id": 45112820596935,
+          "alt": null,
+          "position": 2,
+          "product_id": 8585115926727,
+          "created_at": "2025-12-27T01:38:00-05:00",
+          "updated_at": "2025-12-27T01:43:19-05:00",
+          "admin_graphql_api_id": "gid://shopify/MediaImage/36173917782215",
+          "width": 1304,
+          "height": 1304,
+          "src": "https://cdn.shopify.com/s/files/1/0745/2128/0711/files/guitar-2.webp?v=1766817481",
+          "variant_ids": []
+        }
+      ],
+      "image": {
+        "id": 45112820564167,
+        "alt": null,
+        "position": 1,
+        "product_id": 8585115926727,
+        "created_at": "2025-12-27T01:38:00-05:00",
+        "updated_at": "2025-12-27T01:43:19-05:00",
+        "admin_graphql_api_id": "gid://shopify/MediaImage/36173917749447",
+        "width": 2560,
+        "height": 2560,
+        "src": "https://cdn.shopify.com/s/files/1/0745/2128/0711/files/guitar.jpg?v=1766817482",
+        "variant_ids": []
+      }
+    },
+    {
       "id": 8562041913543,
       "title": "Gift Card",
       "body_html": "This is a gift card for the store",
