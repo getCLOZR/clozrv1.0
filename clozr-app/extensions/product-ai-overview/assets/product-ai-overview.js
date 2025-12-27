@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="clozr-container">
         <div class="clozr-overview">
           <!-- Sticky Title -->
-          <div class="clozr-title">CLOZR Overview</div>
+          <div class="clozr-title">Product Overview</div>
 
           <!-- Scrollable Conversation Area -->
           <div class="clozr-conversation" id="clozr-conversation">
@@ -138,40 +138,42 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${summaryContent}
             </div>
 
-            <!-- Prompt Pills (AI-generated or fallback) -->
-            <div class="clozr-prompt-pills" id="clozr-prompt-pills">
-              ${suggestedQuestions
-                .slice(0, 4) // Limit to 4 questions max
-                .map(
-                  (prompt) => `
-                <button class="clozr-pill" onclick="handleClozrPrompt('${escapeHtml(
-                  prompt
-                )}')">
-                  ${escapeHtml(prompt)}
-                </button>
-              `
-                )
-                .join("")}
-            </div>
-
             <!-- Q&A Responses Container -->
             <div class="clozr-responses" id="clozr-responses"></div>
           </div>
 
+          <!-- Prompt Pills (AI-generated or fallback) - Right above input -->
+          <div class="clozr-prompt-pills" id="clozr-prompt-pills">
+            ${suggestedQuestions
+              .slice(0, 4) // Limit to 4 questions max
+              .map(
+                (prompt) => `
+              <button class="clozr-pill" onclick="handleClozrPrompt('${escapeHtml(
+                prompt
+              )}')">
+                ${escapeHtml(prompt)}
+              </button>
+            `
+              )
+              .join("")}
+          </div>
+
           <!-- Input Field (Fixed at bottom) -->
           <div class="clozr-input-wrapper">
-            <input 
-              type="text" 
-              class="clozr-input" 
-              id="clozr-input"
-                placeholder="Ask about this product..."
-              onkeypress="handleClozrKeyPress(event)"
-            />
+            <div class="clozr-input-container">
+              <input 
+                type="text" 
+                class="clozr-input" 
+                id="clozr-input"
+                placeholder="Ask me anything about this product..."
+                onkeypress="handleClozrKeyPress(event)"
+              />
             <button class="clozr-send" onclick="sendClozrMessage()" aria-label="Send">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M16 2L8 10M16 2L11 16L8 10M16 2L2 7L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
+            </div>
           </div>
         </div>
       </div>
@@ -335,7 +337,7 @@ style.textContent = `
   .clozr-container {
     max-width: 100%;
     margin: 2rem 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, system-ui, sans-serif;
     box-sizing: border-box;
   }
   
@@ -347,12 +349,12 @@ style.textContent = `
   /* Unified Overview Block */
   .clozr-overview {
     background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(15, 23, 42, 0.05);
     border-radius: 8px;
     padding: 0;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    height: 240px;
-    max-height: 240px;
+    height: 300px;
+    max-height: 300px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -361,16 +363,14 @@ style.textContent = `
 
   /* Sticky Title */
   .clozr-title {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     color: #1f2937;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 18px 20px 8px 20px;
     flex-shrink: 0;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
+    line-height: 1.2;
   }
 
   /* Scrollable Conversation Area */
@@ -379,7 +379,7 @@ style.textContent = `
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 1.25rem 1.5rem;
+    padding: 0 20px 18px 20px;
     scroll-behavior: smooth;
   }
 
@@ -402,11 +402,16 @@ style.textContent = `
 
   /* Message Styles */
   .clozr-message {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     animation: fadeInUp 0.2s ease-out;
   }
 
   .clozr-message:last-child {
+    margin-bottom: 0;
+  }
+
+  /* First message (summary) - no extra margin since pills moved */
+  .clozr-message-assistant:first-of-type {
     margin-bottom: 0;
   }
 
@@ -430,11 +435,12 @@ style.textContent = `
   }
 
   .clozr-message-text {
-    font-size: 0.9375rem;
-    line-height: 1.65;
+    font-size: 14px;
+    line-height: 1.45;
     color: inherit;
     font-weight: 400;
     letter-spacing: -0.01em;
+    max-width: 48ch;
   }
 
   .clozr-message-loading {
@@ -469,17 +475,18 @@ style.textContent = `
     line-height: 1.4;
   }
 
-  /* Prompt Pills */
+  /* Prompt Pills - Right above input field */
   .clozr-prompt-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 1.25rem 0 1.5rem 0;
+    padding: 0 20px 8px 20px;
+    flex-shrink: 0;
   }
 
   .clozr-pill {
-    padding: 0.4375rem 0.875rem;
-    font-size: 0.8125rem;
+    padding: 6px 12px;
+    font-size: 12px;
     color: #6b7280;
     background: transparent;
     border: 1px solid rgba(0, 0, 0, 0.06);
@@ -487,8 +494,11 @@ style.textContent = `
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
-    font-weight: 400;
+    font-weight: 500;
+    line-height: 1.2;
     letter-spacing: -0.01em;
+    opacity: 0.85;
+    text-align: left;
   }
 
   .clozr-pill:hover {
@@ -509,55 +519,69 @@ style.textContent = `
 
   /* Input Field (Fixed at bottom) - Product Query Bar */
   .clozr-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
     background: #ffffff;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 1rem 1.5rem;
+    padding: 0 20px 18px 20px;
     transition: all 0.2s ease;
     flex-shrink: 0;
   }
 
+  .clozr-input-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 24px;
+    min-height: 40px;
+  }
+
+  .clozr-input-container:focus-within {
+    outline: none;
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
   .clozr-input {
     flex: 1;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: none;
     outline: none;
-    font-size: 0.875rem;
+    font-size: 12px;
+    line-height: 1.3;
     color: #111827;
-    background: #fafafa;
+    background: transparent;
     font-family: inherit;
-    padding: 0.625rem 1rem;
+    font-weight: 400;
+    padding: 0.875rem 1.125rem 0.875rem 1.375rem;
     border-radius: 24px;
-    transition: all 0.2s ease;
     letter-spacing: -0.01em;
   }
 
   .clozr-input:focus {
-    background: #ffffff;
-    border-color: rgba(0, 0, 0, 0.12);
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.02);
+    outline: none;
+    box-shadow: none;
   }
 
   .clozr-input::placeholder {
     color: #9ca3af;
     font-weight: 400;
+    opacity: 0.6;
   }
 
   .clozr-send {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
+    margin-right: 0.5rem;
     border: none;
     background: #111827;
     color: #ffffff;
-    border-radius: 18px;
+    border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s ease;
     flex-shrink: 0;
     opacity: 0.9;
+    padding: 0;
+    line-height: 0;
   }
 
   .clozr-send:hover {
@@ -570,8 +594,12 @@ style.textContent = `
   }
 
   .clozr-send svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+    display: block;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
   }
 
   /* Loading & Error States */
@@ -600,19 +628,23 @@ style.textContent = `
     }
 
     .clozr-title {
-      padding: 0.875rem 1.25rem;
+      padding: 0.875rem 1.25rem 0.5rem 1.25rem;
     }
 
     .clozr-conversation {
-      padding: 1rem 1.25rem;
+      padding: 0 1.25rem 0.875rem 1.25rem;
     }
 
     .clozr-message {
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .clozr-message-assistant:first-of-type {
+      margin-bottom: 1rem;
     }
 
     .clozr-message-text {
-      font-size: 0.875rem;
+      font-size: 1rem;
       line-height: 1.6;
     }
 
@@ -624,21 +656,40 @@ style.textContent = `
 
     .clozr-prompt-pills {
       gap: 0.4375rem;
-      margin: 1rem 0 1.25rem 0;
+      padding: 0 20px 8px 20px;
     }
 
     .clozr-pill {
-      font-size: 0.75rem;
-      padding: 0.375rem 0.75rem;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      padding: 6px 12px;
+      opacity: 0.85;
     }
 
     .clozr-input-wrapper {
-      padding: 0.875rem 1.25rem;
+      padding: 0 20px 18px 20px;
     }
 
     .clozr-input {
-      font-size: 0.8125rem;
-      padding: 0.5625rem 0.875rem;
+      font-size: 12px;
+      line-height: 1.3;
+      padding: 0.875rem 1rem 0.875rem 1.25rem;
+    }
+
+    .clozr-send {
+      width: 26px;
+      height: 26px;
+      margin-right: 0.4375rem;
+    }
+
+    .clozr-send svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .clozr-input::placeholder {
+      opacity: 0.6;
     }
 
     .clozr-send {
