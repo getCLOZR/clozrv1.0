@@ -49,12 +49,18 @@ def generate_short_overview(raw_json: dict, attrs: dict | None) -> str:
 
     system_prompt = render_overview_system_prompt()
 
+    user_message = f"""FACTS:
+{json.dumps(facts, indent=2)}
+
+Select ONE concrete, product-specific fact from the above data.
+Write a 1-sentence overview (15-25 words) that highlights this fact.
+Use simple, neutral language. No marketing words."""
 
     resp = client.responses.create(
         model=MODEL,
         input=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"FACTS:\n{facts}\n\nWrite the overview."},
+            {"role": "user", "content": user_message},
         ],
         temperature=0.2,
     )

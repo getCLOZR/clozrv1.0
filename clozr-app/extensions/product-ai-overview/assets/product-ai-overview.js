@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const shop = wrapper.dataset.shop;
 
   // Configuration
-  const CLOZR_ENGINE_URL = "https://clozrv1-0.onrender.com";
+  const CLOZR_ENGINE_URL = "https://clozrv1-0-tz8r.onrender.com";
   const CLOZR_APP_BACKEND_URL =
     "https://transformable-saturnina-staunchly.ngrok-free.dev";
 
@@ -432,6 +432,8 @@ style.textContent = `
 
   .clozr-message-user {
     color: #374151;
+    display: flex;
+    justify-content: flex-end;
   }
 
   .clozr-message-text {
@@ -441,6 +443,27 @@ style.textContent = `
     font-weight: 400;
     letter-spacing: -0.01em;
     max-width: 48ch;
+    padding: 0.625rem 0.875rem;
+    border-radius: 8px;
+  }
+
+  .clozr-message-user .clozr-message-text {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .clozr-message-assistant .clozr-message-text {
+    background-color: #ffffff;
+    color: #111827;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  /* First assistant message (overview) - no border/padding */
+  .clozr-message-assistant:first-of-type .clozr-message-text {
+    background-color: transparent;
+    border: none;
+    padding: 0;
   }
 
   .clozr-message-loading {
