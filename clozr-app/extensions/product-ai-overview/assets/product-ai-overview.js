@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let chatHistory = [];
   let isChatExpanded = false;
   let initialOverview = null; // Store the initial AI overview for context
+  let initialSuggestedQuestions = []; // Store initial suggested questions
+  let hasRefreshedPills = false; // Track if pills have been refreshed once
+  let hasExpanded = false; // Track if container has been expanded
+  let isMinimized = false; // Track minimize/expand state
 
   // Fallback prompt suggestions (used if API doesn't provide questions)
   const defaultPrompts = [
@@ -93,6 +97,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? data.suggested_questions
         : defaultPrompts;
 
+    // Store for later use (pills refresh)
+    initialSuggestedQuestions = [...suggestedQuestions];
+
     // 3️⃣ Render unified overview block with summary and chat
     renderUnifiedOverview(data, suggestedQuestions);
   } catch (err) {
@@ -127,9 +134,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const overviewHtml = `
       <div class="clozr-container">
-        <div class="clozr-overview">
+        <div class="clozr-overview" id="clozr-overview-container">
           <!-- Sticky Title -->
-          <div class="clozr-title">Product Overview</div>
+          <div class="clozr-title-wrapper">
+            <div class="clozr-title">Product Overview</div>
+            <button class="clozr-minimize-btn" id="clozr-minimize-btn" onclick="toggleClozrMinimize()" aria-label="Minimize" style="display: none;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="clozr-toggle-icon">
+                <!-- Inward arrows (minimize) - shown when expanded -->
+                <path d="M3 8L8 3M21 8L16 3M3 16L8 21M21 16L16 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
 
           <!-- Scrollable Conversation Area -->
           <div class="clozr-conversation" id="clozr-conversation">
@@ -201,10 +216,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Clear input
       input.value = "";
 
-      // Hide prompt pills after first question
-      const pills = document.getElementById("clozr-prompt-pills");
-      if (pills && pills.style.display !== "none") {
-        pills.style.display = "none";
+      // Expand container on first message (only once)
+      if (!hasExpanded) {
+        expandClozrContainer();
+        hasExpanded = true;
       }
 
       // Add response inline
@@ -213,6 +228,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const response = await getChatResponse(question, productId);
         updateLastResponse(response);
+        
+        // Refresh pills once after first response (if not already refreshed)
+        if (!hasRefreshedPills && initialSuggestedQuestions.length > 0) {
+          refreshPromptPills();
+          hasRefreshedPills = true;
+        }
       } catch (error) {
         updateLastResponse(
           "I'm having trouble processing your question right now. Please try again."
@@ -220,6 +241,76 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Chat error:", error);
       }
     };
+
+    // Expand container height
+    function expandClozrContainer() {
+      const container = document.getElementById("clozr-overview-container");
+      const minimizeBtn = document.getElementById("clozr-minimize-btn");
+      if (container) {
+        container.classList.add("clozr-expanded");
+        if (minimizeBtn) {
+          minimizeBtn.style.display = "flex";
+        }
+        // Initialize icon to show inward arrows (minimize) when expanded
+        updateToggleIcon(false);
+      }
+    }
+
+    // Update icon based on state (inward for minimize, outward for expand)
+    function updateToggleIcon(isMinimizedState) {
+      const iconSvg = document.getElementById("clozr-toggle-icon");
+      if (!iconSvg) return;
+
+      if (isMinimizedState) {
+        // Show outward arrows (expand icon) - arrows pointing out from center
+        iconSvg.innerHTML = `
+          <path d="M8 3H3V8M16 3H21V8M8 21H3V16M16 21H21V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        `;
+      } else {
+        // Show inward arrows (minimize icon) - arrows pointing in toward center
+        iconSvg.innerHTML = `
+          <path d="M3 8L8 3M21 8L16 3M3 16L8 21M21 16L16 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        `;
+      }
+    }
+
+    // Toggle minimize/expand
+    window.toggleClozrMinimize = function() {
+      const container = document.getElementById("clozr-overview-container");
+      if (!container) return;
+      
+      isMinimized = !isMinimized;
+      if (isMinimized) {
+        container.classList.remove("clozr-expanded");
+        container.classList.add("clozr-minimized");
+      } else {
+        container.classList.remove("clozr-minimized");
+        container.classList.add("clozr-expanded");
+      }
+      
+      // Update icon based on new state
+      updateToggleIcon(isMinimized);
+    };
+
+    // Function to refresh prompt pills with initial questions
+    function refreshPromptPills() {
+      const pillsContainer = document.getElementById("clozr-prompt-pills");
+      if (!pillsContainer || initialSuggestedQuestions.length === 0) return;
+
+      // Re-render pills with initial questions
+      pillsContainer.innerHTML = initialSuggestedQuestions
+        .slice(0, 4)
+        .map(
+          (prompt) => `
+          <button class="clozr-pill" onclick="handleClozrPrompt('${escapeHtml(
+            prompt
+          )}')">
+            ${escapeHtml(prompt)}
+          </button>
+        `
+        )
+        .join("");
+    }
   }
 
   function addInlineResponse(question) {
@@ -361,16 +452,64 @@ style.textContent = `
     box-sizing: border-box;
   }
 
+  /* Title Wrapper */
+  .clozr-title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 8px 20px;
+    flex-shrink: 0;
+  }
+
   /* Sticky Title */
   .clozr-title {
     font-size: 12px;
     font-weight: 600;
     color: #1f2937;
-    padding: 18px 20px 8px 20px;
-    flex-shrink: 0;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     line-height: 1.2;
+    margin: 0;
+  }
+
+  /* Minimize Button */
+  .clozr-minimize-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .clozr-minimize-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .clozr-minimize-btn svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+  }
+
+  /* Container Height States */
+  .clozr-expanded {
+    height: 500px;
+    max-height: 500px;
+  }
+
+  .clozr-minimized {
+    height: 300px;
+    max-height: 300px;
   }
 
   /* Scrollable Conversation Area */
@@ -381,6 +520,11 @@ style.textContent = `
     overflow-x: hidden;
     padding: 0 20px 18px 20px;
     scroll-behavior: smooth;
+  }
+
+  /* Subtle spacing when Q&A begins */
+  .clozr-message-user:first-of-type {
+    margin-top: 1rem;
   }
 
   .clozr-conversation::-webkit-scrollbar {
@@ -400,9 +544,9 @@ style.textContent = `
     background: rgba(0, 0, 0, 0.12);
   }
 
-  /* Message Styles */
+  /* Message Styles - Integrated with Overview */
   .clozr-message {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     animation: fadeInUp 0.2s ease-out;
   }
 
@@ -410,15 +554,15 @@ style.textContent = `
     margin-bottom: 0;
   }
 
-  /* First message (summary) - no extra margin since pills moved */
+  /* First message (summary) - extra spacing */
   .clozr-message-assistant:first-of-type {
-    margin-bottom: 0;
+    margin-bottom: 1.25rem;
   }
 
   @keyframes fadeInUp {
     from {
       opacity: 0;
-      transform: translateY(1px);
+      transform: translateY(2px);
     }
     to {
       opacity: 1;
@@ -426,49 +570,59 @@ style.textContent = `
     }
   }
 
+  /* User questions - minimal, subtle styling with more spacing */
+  .clozr-message-user {
+    color: #64748b;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Assistant responses - with subtle highlight to make information attractive */
   .clozr-message-assistant {
     color: #111827;
   }
 
-  .clozr-message-user {
-    color: #374151;
-    display: flex;
-    justify-content: flex-end;
-  }
-
   .clozr-message-text {
     font-size: 14px;
-    line-height: 1.45;
+    line-height: 1.6;
     color: inherit;
     font-weight: 400;
     letter-spacing: -0.01em;
-    max-width: 48ch;
-    padding: 0.625rem 0.875rem;
-    border-radius: 8px;
-  }
-
-  .clozr-message-user .clozr-message-text {
-    background-color: #f3f4f6;
-    color: #1f2937;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-
-  .clozr-message-assistant .clozr-message-text {
-    background-color: #ffffff;
-    color: #111827;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  /* First assistant message (overview) - no border/padding */
-  .clozr-message-assistant:first-of-type .clozr-message-text {
-    background-color: transparent;
-    border: none;
     padding: 0;
+    border: none;
+    background: transparent;
+    max-width: none;
+  }
+
+  /* User question - subtle, minimal differentiation */
+  .clozr-message-user .clozr-message-text {
+    color: #64748b;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* Assistant response - subtle highlight background */
+  .clozr-message-assistant .clozr-message-text {
+    color: #111827;
+    background-color: #f8fafc;
+    padding: 0.625rem 0.875rem;
+    border-radius: 6px;
+    border-left: 2px solid #e0f2fe;
+  }
+
+  /* First assistant message (overview) - no highlight, keep as-is */
+  .clozr-message-assistant:first-of-type .clozr-message-text {
+    color: #111827;
+    background-color: transparent;
+    padding: 0;
+    border-left: none;
+    border-radius: 0;
   }
 
   .clozr-message-loading {
-    color: #9ca3af;
+    color: #94a3b8;
     font-style: normal;
+    font-weight: 400;
   }
 
   .clozr-message-bullets {
@@ -650,8 +804,22 @@ style.textContent = `
       max-height: 300px;
     }
 
-    .clozr-title {
+    .clozr-title-wrapper {
       padding: 0.875rem 1.25rem 0.5rem 1.25rem;
+    }
+
+    .clozr-title {
+      padding: 0;
+    }
+
+    .clozr-expanded {
+      height: 450px;
+      max-height: 450px;
+    }
+
+    .clozr-minimized {
+      height: 300px;
+      max-height: 300px;
     }
 
     .clozr-conversation {
@@ -659,16 +827,24 @@ style.textContent = `
     }
 
     .clozr-message {
-      margin-bottom: 0.875rem;
+      margin-bottom: 1rem;
     }
 
     .clozr-message-assistant:first-of-type {
       margin-bottom: 1rem;
     }
 
+    .clozr-message-user:first-of-type {
+      margin-top: 0.875rem;
+    }
+
     .clozr-message-text {
       font-size: 1rem;
       line-height: 1.6;
+    }
+
+    .clozr-message-assistant .clozr-message-text {
+      padding: 0.625rem 0.75rem;
     }
 
     .clozr-message-bullets li {
